@@ -89,7 +89,7 @@ public static class Float_Extension
 
     public static bool IsInRange(this float value, Range range)
     {
-        return value >= range.Min && value <= range.Max;
+        return value >= range.min && value <= range.max;
     }
 
     public static bool IsInRange(this float value, float center, float offset)

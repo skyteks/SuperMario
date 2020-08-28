@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -146,7 +147,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a160d838ff8b4b4693ac20007e008c7, type: 3}
   m_Name: 
@@ -215,6 +216,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8bd2b58599b67499f8a71330c506cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xRange:
+    min: -10
+    max: 11
+  yRange:
+    min: -6
+    max: 3
 --- !u!1 &921675657
 GameObject:
   m_ObjectHideFlags: 0
@@ -1404,7 +1423,7 @@ GameObject:
   - component: {fileID: 1960436962}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1446,11 +1465,11 @@ Rigidbody2D:
   m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
+  m_UseAutoMass: 1
+  m_Mass: 0.7
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 3
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -1480,17 +1499,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1960436958}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: efd3be9d778436d4092a6d464695e5de, type: 3}
+  m_Script: {fileID: 11500000, guid: 7fd19926f98b45d4bbeb70042d361743, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 5
-  gravity: 3
-  useGravity: 1
+  speed: 5
   jumpHeight:
-    Min: 0.8
-    Max: 4.3
-  jumpDuration: 0
-  sprintSpeed: 8
-  maxSprintSpeed: 11
-  maxSprintTriggerTime: 2
-  formState: 1
+    min: 0.8
+    max: 4.5
+  jumpDuration: 0.5
+  groundCheckRadius: 0
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 0
