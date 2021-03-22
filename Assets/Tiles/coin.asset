@@ -20,4 +20,6 @@ MonoBehaviour:
   m_MinSpeed: 7
   m_MaxSpeed: 7
   m_AnimationStartTime: 0
-  m_TileColliderType: 1
+  m_TileColliderType: 0
+  m_DefaultGameObject: {fileID: 930141075277351867, guid: 15e068af00d26b248a8f2bcc836267f6,
+    type: 3}

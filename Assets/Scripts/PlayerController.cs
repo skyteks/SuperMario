@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class PlayerController : MonoBehaviour
@@ -13,13 +14,15 @@ public class PlayerController : MonoBehaviour
     }
 
     public State state;
-    public float walkSpeed, runSpeed,jumpForce;
+    public float walkSpeed, runSpeed, jumpForce;
     public GameObject projectilePrefab;
     public LayerMask groundMask;
     public float groundCheckOffset = 0.25f;
     private bool isGrounded;
     private bool wasGrounded;
-    private bool running;
+    private Vector2 lastVelocity;
+    private bool isSprinting;
+    private Vector2 rawInputMovement;
 
     private SpriteRenderer render;
     private Animator anim;
@@ -43,8 +46,6 @@ public class PlayerController : MonoBehaviour
 
     public float coyoteTime = 0.1f;
     private float coyoteCounter;
-    public float jumpBufferTime = 0.1f;
-    private float jumpBufferCounter;
 
     private bool frozenInAnimation;
     private Coroutine injuredCoroutine;
@@ -75,40 +76,17 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        float horizontalAxis = Input.GetAxisRaw("Horizontal");
-        float verticalAxis = Input.GetAxisRaw("Vertical");
-
         if (!frozenInAnimation)
         {
-            running = Input.GetButton("Run");
-
             // move horizontally
-            rigid.velocity = new Vector2(horizontalAxis * (running ? runSpeed : walkSpeed), rigid.velocity.y);
-
+            rigid.velocity = new Vector2(rawInputMovement.x * (isSprinting ? runSpeed : walkSpeed), rigid.velocity.y);
 
             // check if grounded
             isGrounded = Physics2D.OverlapCircle(transform.position + Vector3.right * -groundCheckOffset, 0.1f, groundMask);
             isGrounded = Physics2D.OverlapCircle(transform.position + Vector3.right * groundCheckOffset, 0.1f, groundMask) || isGrounded;
 
-
-            // manage jump buffer
-            jumpBufferCounter = Input.GetButtonDown("Jump") ? jumpBufferTime : Mathf.Max(0f, jumpBufferCounter - Time.deltaTime);
-
             // manage coyote-time
             coyoteCounter = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
-
-            // jump in the air
-            if (jumpBufferCounter > 0f && coyoteCounter > 0f)
-            {
-                jumpBufferCounter = 0f;
-                rigid.velocity = new Vector2(rigid.velocity.x, jumpForce);
-                coyoteCounter = 0f;
-            }
-
-            if (Input.GetButtonUp("Jump") && rigid.velocity.y > 0)
-            {
-                rigid.velocity = rigid.velocity.ToWithY(rigid.velocity.y * 0.5f);
-            }
 
             // flip the character
             if (rigid.velocity.x > 0f)
@@ -130,12 +108,12 @@ public class PlayerController : MonoBehaviour
                 anim.SetFloat("xSpeed", Mathf.Abs(rigid.velocity.x));
                 anim.SetFloat("ySpeed", rigid.velocity.y);
                 anim.SetBool("grounded", isGrounded);
-                anim.SetBool("run", running);
-                anim.SetBool("duck", verticalAxis < -0.01f);
+                anim.SetBool("sprint", isSprinting);
+                anim.SetBool("duck", rawInputMovement.y < -0.01f);
             }
 
             // shoot
-            if (projectilePrefab != null && Input.GetButtonDown("Fire1"))
+            if (projectilePrefab != null && false)//TODO
             {
                 rigid.velocity = Vector2.zero;
                 anim?.SetTrigger("shoot");
@@ -144,25 +122,32 @@ public class PlayerController : MonoBehaviour
         }
 
         // move camera point
-        if (camTarget != null && horizontalAxis != 0f)
+        if (camTarget != null && rawInputMovement.x != 0f)
         {
-            float lerp = Mathf.Lerp(camTarget.localPosition.x, camAheadAmount * horizontalAxis, camAheadSpeed * Time.deltaTime);
+            float lerp = Mathf.Lerp(camTarget.localPosition.x, camAheadAmount * rawInputMovement.x, camAheadSpeed * Time.deltaTime);
             camTarget.localPosition = new Vector2(lerp, camAheadUpOffset);
         }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Collision with " + collision.collider.gameObject);
+        InteractableBlock block = collision.transform.GetComponent<InteractableBlock>();
+        if (block != null && Mathf.Abs(collision.transform.position.x - transform.position.x) < 0.8f)
+        {
+            if (!isGrounded && lastVelocity.y > 0f)
+            {
+                block.HitBlock(collision.GetContact(0).point);
+            }
+        }
     }
 
     void OnCollisionStay2D(Collision2D collision)
     {
         // get injured on enemy touch
-        EnemyController enemy = collision.collider.transform.GetComponent<EnemyController>();
+        EnemyController enemy = collision.transform.GetComponent<EnemyController>();
         if (enemy != null && injuredCoroutine == null)
         {
-            StartCoroutine(Knockback(transform.position - collision.collider.transform.position));
+            StartCoroutine(Knockback(transform.position - collision.transform.position));
             injuredCoroutine = StartCoroutine(Invulnerability());
         }
     }
@@ -170,6 +155,39 @@ public class PlayerController : MonoBehaviour
     void LateUpdate()
     {
         wasGrounded = isGrounded;
+        lastVelocity = rigid.velocity;
+    }
+
+    public void OnMovement(InputAction.CallbackContext callbackContext)
+    {
+        rawInputMovement = callbackContext.ReadValue<Vector2>();
+    }
+
+    public void OnJump(InputAction.CallbackContext callbackContext)
+    {
+        // jump in the air
+        if (callbackContext.started && coyoteCounter > 0f)
+        {
+            rigid.velocity = new Vector2(rigid.velocity.x, jumpForce);
+            coyoteCounter = 0f;
+        }
+
+        if (callbackContext.canceled && rigid.velocity.y > 0f)
+        {
+            rigid.velocity = rigid.velocity.ToWithY(rigid.velocity.y * 0.5f);
+        }
+    }
+
+    public void OnSprint(InputAction.CallbackContext callbackContext)
+    {
+        if (callbackContext.ReadValueAsButton())
+        {
+            isSprinting = true;
+        }
+        else if (callbackContext.canceled)
+        {
+            isSprinting = false;
+        }
     }
 
     public IEnumerator Invulnerability()

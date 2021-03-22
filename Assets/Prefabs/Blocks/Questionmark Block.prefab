@@ -44,7 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64427ea56ebd15a499dcad99cef455c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dropPrefab: {fileID: 0}
+  dropPrefab: {fileID: 824230560051293541, guid: 2e3ec472b1a798948ba0701cece4325c,
+    type: 3}
   turnInto: {fileID: 11400000, guid: 4a6b31fd95a2a9d4b906e3ff2cdeaa70, type: 2}
 --- !u!61 &7769348432399967873
 BoxCollider2D:

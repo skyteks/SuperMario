@@ -21,18 +21,17 @@ public class InteractableBlock : MonoBehaviour
 
     protected void Awake()
     {
-        grid = GetComponentInParent<Grid>();
-        tilemap = GetComponentInParent<Tilemap>();
         hitbox = GetComponent<Collider2D>();
     }
 
-    public virtual void HitBlock(Vector2 fromDir)
+    public virtual void HitBlock(Vector2 point)
     {
-
+        point = transform.InverseTransformPoint(point);
     }
 
     protected void ChangeToOtherTile(TileBase tile)
     {
-        tilemap.SetTile(cellPosition, tile);
+        //tilemap.SetTile(cellPosition, tile);
+        Destroy(this);
     }
 }

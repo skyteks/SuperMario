@@ -8,16 +8,18 @@ public class BreackableBlock : InteractableBlock
     public GameObject dropPrefab;
     public TileBase turnInto;
 
-    public override void HitBlock(Vector2 fromDir)
+    public override void HitBlock(Vector2 point)
     {
+        point = transform.InverseTransformPoint(point);
+
         Vector3 outDir;
-        if (fromDir.y > 0.5f)
-        {
-            outDir = Vector2.up;
-        }
-        else if (fromDir.y < -0.5f)
+        if (point.y > 0.5f)
         {
             outDir = Vector2.down;
+        }
+        else if (point.y < -0.5f)
+        {
+            outDir = Vector2.up;
         }
         else
         {

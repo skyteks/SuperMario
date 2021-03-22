@@ -142,10 +142,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1795181679483724957}
   - component: {fileID: 1795181679483724956}
-  - component: {fileID: 1795181679483724963}
-  - component: {fileID: 1795181679483724959}
   - component: {fileID: 1795181679483724958}
   - component: {fileID: 1795181679483724952}
+  - component: {fileID: 1550745668}
+  - component: {fileID: 1550745666}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -187,42 +187,10 @@ Rigidbody2D:
   m_AngularDrag: 0.05
   m_GravityScale: 1
   m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!70 &1795181679483724963
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1795181679483724962}
-  m_Enabled: 0
-  m_Density: 1
-  m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.5}
-  m_Size: {x: 0.7, y: 1}
-  m_Direction: 0
---- !u!70 &1795181679483724959
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1795181679483724962}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.8}
-  m_Size: {x: 0.7, y: 1.6}
-  m_Direction: 0
 --- !u!114 &1795181679483724958
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237,8 +205,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 1
   walkSpeed: 6
-  runSpeed: 9
-  jumpForce: 14.5
+  runSpeed: 10
+  jumpForce: 14.8
   projectilePrefab: {fileID: 0}
   groundMask:
     serializedVersion: 2
@@ -252,7 +220,6 @@ MonoBehaviour:
   camAheadUpOffset: 0
   camAheadSpeed: 4
   coyoteTime: 0.1
-  jumpBufferTime: 0.1
 --- !u!61 &1795181679483724952
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -266,7 +233,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.22}
+  m_Offset: {x: 0, y: 0.81}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -277,8 +244,103 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.69, y: 0.4}
+  m_Size: {x: 0.7, y: 1.6}
   m_EdgeRadius: 0
+--- !u!58 &1550745668
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795181679483724962}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0.3}
+  serializedVersion: 2
+  m_Radius: 0.3
+--- !u!114 &1550745666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795181679483724962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 2df1d5d87998e92488a26cf2125c82a6,
+    type: 3}
+  m_NotificationBehavior: 2
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1795181679483724958}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnJump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 49cd73ce-2466-47b5-ad76-b8a1630dd70e
+    m_ActionName: PlayerControlls/Jump[/Keyboard/space,/XInputControllerWindows/buttonSouth,/XInputControllerWindows/buttonEast]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1795181679483724958}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnMovement
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 30a32165-bc48-4c8d-ace9-b954b6fb48da
+    m_ActionName: PlayerControlls/Movement[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/XInputControllerWindows/dpad,/XInputControllerWindows/dpad,/XInputControllerWindows/dpad,/XInputControllerWindows/dpad]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1795181679483724958}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnSprint
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 6b0f81c1-1991-4b3c-8b8e-820aa5d2e555
+    m_ActionName: PlayerControlls/Sprint[/Keyboard/shift,/Keyboard/ctrl,/XInputControllerWindows/buttonWest,/XInputControllerWindows/buttonNorth]
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: PlayerControlls
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &1795181679736030424
 GameObject:
   m_ObjectHideFlags: 0
