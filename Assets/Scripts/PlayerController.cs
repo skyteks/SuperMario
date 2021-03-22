@@ -13,12 +13,13 @@ public class PlayerController : MonoBehaviour
     }
 
     public State state;
-    public float movementSpeed, jumpForce;
+    public float walkSpeed, runSpeed,jumpForce;
     public GameObject projectilePrefab;
     public LayerMask groundMask;
     public float groundCheckOffset = 0.25f;
     private bool isGrounded;
     private bool wasGrounded;
+    private bool running;
 
     private SpriteRenderer render;
     private Animator anim;
@@ -75,11 +76,15 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         float horizontalAxis = Input.GetAxisRaw("Horizontal");
+        float verticalAxis = Input.GetAxisRaw("Vertical");
 
         if (!frozenInAnimation)
         {
+            running = Input.GetButton("Run");
+
             // move horizontally
-            rigid.velocity = new Vector2(horizontalAxis * movementSpeed, rigid.velocity.y);
+            rigid.velocity = new Vector2(horizontalAxis * (running ? runSpeed : walkSpeed), rigid.velocity.y);
+
 
             // check if grounded
             isGrounded = Physics2D.OverlapCircle(transform.position + Vector3.right * -groundCheckOffset, 0.1f, groundMask);
@@ -125,6 +130,8 @@ public class PlayerController : MonoBehaviour
                 anim.SetFloat("xSpeed", Mathf.Abs(rigid.velocity.x));
                 anim.SetFloat("ySpeed", rigid.velocity.y);
                 anim.SetBool("grounded", isGrounded);
+                anim.SetBool("run", running);
+                anim.SetBool("duck", verticalAxis < -0.01f);
             }
 
             // shoot
@@ -142,6 +149,11 @@ public class PlayerController : MonoBehaviour
             float lerp = Mathf.Lerp(camTarget.localPosition.x, camAheadAmount * horizontalAxis, camAheadSpeed * Time.deltaTime);
             camTarget.localPosition = new Vector2(lerp, camAheadUpOffset);
         }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log("Collision with " + collision.collider.gameObject);
     }
 
     void OnCollisionStay2D(Collision2D collision)

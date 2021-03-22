@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: questionmark block
   m_EditorClassIdentifier: 
   m_AnimatedSprites:
-  - {fileID: 21301982, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
-  - {fileID: 21301984, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
   - {fileID: 21301986, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
   - {fileID: 21301988, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
-  m_MinSpeed: 1
-  m_MaxSpeed: 1
+  - {fileID: 21301982, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
+  - {fileID: 21301984, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
+  m_MinSpeed: 5
+  m_MaxSpeed: 5
   m_AnimationStartTime: 0
-  m_TileColliderType: 2
+  m_TileColliderType: 0
+  m_DefaultGameObject: {fileID: 930141075277351867, guid: 15e068af00d26b248a8f2bcc836267f6,
+    type: 3}

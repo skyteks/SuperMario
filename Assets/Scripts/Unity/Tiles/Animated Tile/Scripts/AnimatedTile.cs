@@ -19,6 +19,7 @@ namespace UnityEngine.Tilemaps
         public float m_MaxSpeed = 1f;
         public float m_AnimationStartTime;
         public Tile.ColliderType m_TileColliderType;
+        public GameObject m_DefaultGameObject;
 
         public override void GetTileData(Vector3Int location, ITilemap tileMap, ref TileData tileData)
         {
@@ -26,9 +27,11 @@ namespace UnityEngine.Tilemaps
             tileData.color = Color.white;
             if (m_AnimatedSprites != null && m_AnimatedSprites.Length > 0)
             {
-                tileData.sprite = m_AnimatedSprites[m_AnimatedSprites.Length - 1];
+                tileData.sprite = m_AnimatedSprites[0];
                 tileData.colliderType = m_TileColliderType;
             }
+
+            tileData.gameObject = m_DefaultGameObject;
         }
 
         public override bool GetTileAnimationData(Vector3Int location, ITilemap tileMap, ref TileAnimationData tileAnimationData)
@@ -64,6 +67,8 @@ namespace UnityEngine.Tilemaps
 
             if (count == 0)
                 return;
+
+            tile.m_DefaultGameObject = EditorGUILayout.ObjectField("Default Game Object", tile.m_DefaultGameObject, typeof(GameObject), false) as GameObject;
 
             EditorGUILayout.LabelField("Place sprites shown based on the order of animation.");
             EditorGUILayout.Space();

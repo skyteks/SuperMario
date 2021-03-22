@@ -22,6 +22,14 @@ public class SmoothCameraFollow : MonoBehaviour
         cam = GetComponent<Camera>();
     }
 
+    void OnEnable()
+    {
+        if (objectToFollow == null)
+        {
+            enabled = false;
+        }
+    }
+
     void OnDrawGizmosSelected()
     {
 
