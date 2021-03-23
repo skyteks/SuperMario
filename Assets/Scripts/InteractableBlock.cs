@@ -3,35 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-[RequireComponent(typeof(Collider2D))]
 public class InteractableBlock : MonoBehaviour
 {
-    protected Grid grid;
-    protected Tilemap tilemap;
+    public TileBase changeInto;
+    public bool destroyOnChange;
 
-    protected Collider2D hitbox;
-
-    public Vector3Int cellPosition
+    public virtual void Hit(Vector2 normal, TilemapManager manager)
     {
-        get
+        bool triggered = false;
+        if (normal.y < 0f)
         {
-            return grid.WorldToCell(transform.position);
+            triggered = true;
+        }
+
+        if (triggered)
+        {
+            Interact(normal, manager);
         }
     }
 
-    protected void Awake()
+    protected virtual void Interact(Vector2 normal, TilemapManager manager)
     {
-        hitbox = GetComponent<Collider2D>();
-    }
-
-    public virtual void HitBlock(Vector2 point)
-    {
-        point = transform.InverseTransformPoint(point);
-    }
-
-    protected void ChangeToOtherTile(TileBase tile)
-    {
-        //tilemap.SetTile(cellPosition, tile);
-        Destroy(this);
+        manager.ChangeToOtherTileNextFrame(manager.WorldToCell(transform.position), changeInto);
     }
 }

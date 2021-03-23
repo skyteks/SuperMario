@@ -14,7 +14,8 @@ namespace UnityEngine.Tilemaps {
     [Serializable]
     [CreateAssetMenu(fileName = "New Weighted Random Tile", menuName = "Tiles/Weighted Random Tile")]
     public class WeightedRandomTile : Tile {
-        [SerializeField] public WeightedSprite[] Sprites;
+        public WeightedSprite[] Sprites;
+        public GameObject m_DefaultGameObject;
 
         public override void GetTileData(Vector3Int location, ITilemap tileMap, ref TileData tileData) {
             base.GetTileData(location, tileMap, ref tileData);
@@ -38,27 +39,28 @@ namespace UnityEngine.Tilemaps {
             foreach (var spriteInfo in Sprites) {
                 randomWeight -= spriteInfo.Weight;
                 if (randomWeight < 0) {
-                    tileData.sprite = spriteInfo.Sprite;    
+                    tileData.sprite = spriteInfo.Sprite;
                     break;
                 }
             }
+
+            tileData.gameObject = m_DefaultGameObject;
         }
     }
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(WeightedRandomTile))]
-    public class WeightedRandomTileEditor : Editor {
-        private WeightedRandomTile Tile {
-            get { return target as WeightedRandomTile; }
-        }
+    public class WeightedRandomTileEditor : Editor
+    {
+        private WeightedRandomTile tile { get { return target as WeightedRandomTile; } }
 
         public override void OnInspectorGUI() {
             EditorGUI.BeginChangeCheck();
-            int count = EditorGUILayout.DelayedIntField("Number of Sprites", Tile.Sprites != null ? Tile.Sprites.Length : 0);
+            int count = EditorGUILayout.DelayedIntField("Number of Sprites", tile.Sprites != null ? tile.Sprites.Length : 0);
             if (count < 0) count = 0;
             
-            if (Tile.Sprites == null || Tile.Sprites.Length != count) {
-                Array.Resize(ref Tile.Sprites, count);
+            if (tile.Sprites == null || tile.Sprites.Length != count) {
+                Array.Resize(ref tile.Sprites, count);
             }
 
             if (count == 0) return;
@@ -67,11 +69,13 @@ namespace UnityEngine.Tilemaps {
             EditorGUILayout.Space();
 
             for (int i = 0; i < count; i++) {
-                Tile.Sprites[i].Sprite = (Sprite) EditorGUILayout.ObjectField("Sprite " + (i + 1), Tile.Sprites[i].Sprite, typeof(Sprite), false, null);
-                Tile.Sprites[i].Weight = EditorGUILayout.IntField("Weight " + (i + 1), Tile.Sprites[i].Weight);
+                tile.Sprites[i].Sprite = (Sprite) EditorGUILayout.ObjectField("Sprite " + (i + 1), tile.Sprites[i].Sprite, typeof(Sprite), false, null);
+                tile.Sprites[i].Weight = EditorGUILayout.IntField("Weight " + (i + 1), tile.Sprites[i].Weight);
             }
 
-            if (EditorGUI.EndChangeCheck()) EditorUtility.SetDirty(Tile);
+            tile.m_DefaultGameObject = EditorGUILayout.ObjectField("Default Game Object", tile.m_DefaultGameObject, typeof(GameObject), false) as GameObject;
+
+            if (EditorGUI.EndChangeCheck()) EditorUtility.SetDirty(tile);
         }
     }
 #endif

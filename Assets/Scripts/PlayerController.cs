@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class PlayerController : MonoBehaviour
@@ -131,12 +132,21 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        InteractableBlock block = collision.transform.GetComponent<InteractableBlock>();
-        if (block != null && Mathf.Abs(collision.transform.position.x - transform.position.x) < 0.8f)
+        TilemapManager manager = collision.transform.GetComponent<TilemapManager>();
+        if (manager != null)
         {
-            if (!isGrounded && lastVelocity.y > 0f)
+            List<Vector3Int> cellContacts = new List<Vector3Int>(collision.contactCount);
+            foreach (ContactPoint2D hit in collision.contacts)
             {
-                block.HitBlock(collision.GetContact(0).point);
+                Vector3 hitPosition = Vector3.zero;
+                hitPosition.x = hit.point.x - 0.01f * hit.normal.x;
+                hitPosition.y = hit.point.y - 0.01f * hit.normal.y;
+                Vector3Int cellPosition = manager.WorldToCell(hitPosition);
+                if (cellContacts.Count == 0 || !cellContacts.Contains(cellPosition))
+                {
+                    cellContacts.Add(cellPosition);
+                    manager.HitTile(cellPosition, hit.normal);
+                }
             }
         }
     }

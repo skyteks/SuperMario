@@ -6,18 +6,15 @@ using UnityEngine.Tilemaps;
 public class BreackableBlock : InteractableBlock
 {
     public GameObject dropPrefab;
-    public TileBase turnInto;
 
-    public override void HitBlock(Vector2 point)
+    protected override void Interact(Vector2 normal, TilemapManager manager)
     {
-        point = transform.InverseTransformPoint(point);
-
         Vector3 outDir;
-        if (point.y > 0.5f)
+        if (normal.y > 0f)
         {
             outDir = Vector2.down;
         }
-        else if (point.y < -0.5f)
+        else if (normal.y < 0f)
         {
             outDir = Vector2.up;
         }
@@ -31,6 +28,6 @@ public class BreackableBlock : InteractableBlock
             GameObject dropInstance = Instantiate(dropPrefab, transform.position + outDir, Quaternion.identity);
         }
 
-        ChangeToOtherTile(turnInto);
+        base.Interact(normal, manager);
     }
 }

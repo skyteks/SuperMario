@@ -68,8 +68,6 @@ namespace UnityEngine.Tilemaps
             if (count == 0)
                 return;
 
-            tile.m_DefaultGameObject = EditorGUILayout.ObjectField("Default Game Object", tile.m_DefaultGameObject, typeof(GameObject), false) as GameObject;
-
             EditorGUILayout.LabelField("Place sprites shown based on the order of animation.");
             EditorGUILayout.Space();
 
@@ -93,6 +91,9 @@ namespace UnityEngine.Tilemaps
             tile.m_MaxSpeed = maxSpeed;
 
             tile.m_AnimationStartTime = EditorGUILayout.FloatField("Start Time", tile.m_AnimationStartTime);
+
+            tile.m_DefaultGameObject = EditorGUILayout.ObjectField("Default Game Object", tile.m_DefaultGameObject, typeof(GameObject), false) as GameObject;
+
             tile.m_TileColliderType=(Tile.ColliderType) EditorGUILayout.EnumPopup("Collider Type", tile.m_TileColliderType);
             if (EditorGUI.EndChangeCheck())
                 EditorUtility.SetDirty(tile);

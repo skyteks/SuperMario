@@ -14,10 +14,10 @@ namespace UnityEngine.Tilemaps
 	[CreateAssetMenu(fileName = "New Random Tile", menuName = "Tiles/Random Tile")]
 	public class RandomTile : Tile
 	{
-		[SerializeField]
 		public Sprite[] m_Sprites;
+        public GameObject m_DefaultGameObject;
 
-		public override void GetTileData(Vector3Int location, ITilemap tileMap, ref TileData tileData)
+        public override void GetTileData(Vector3Int location, ITilemap tileMap, ref TileData tileData)
 		{
 			base.GetTileData(location, tileMap, ref tileData);
 			if ((m_Sprites != null) && (m_Sprites.Length > 0))
@@ -31,8 +31,10 @@ namespace UnityEngine.Tilemaps
 				Random.InitState((int)hash);
 				tileData.sprite = m_Sprites[(int) (m_Sprites.Length * Random.value)];
 			}
-		}
-	}
+
+            tileData.gameObject = m_DefaultGameObject;
+        }
+    }
 
 #if UNITY_EDITOR
 	[CustomEditor(typeof(RandomTile))]
