@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13b75c95f34a00d4e8c04f76b73312e6, type: 3}
-  m_Name: questionmark block
+  m_Script: {fileID: 11500000, guid: 9e388b54452ef794386548fda115287f, type: 3}
+  m_Name: questionmark bock
   m_EditorClassIdentifier: 
   m_AnimatedSprites:
   - {fileID: 21301986, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
@@ -20,6 +20,8 @@ MonoBehaviour:
   m_MinSpeed: 5
   m_MaxSpeed: 5
   m_AnimationStartTime: 0
-  m_TileColliderType: 2
-  m_DefaultGameObject: {fileID: 930141075277351867, guid: 15e068af00d26b248a8f2bcc836267f6,
-    type: 3}
+  m_TileColliderType: 0
+  m_DefaultGameObject: {fileID: 0}
+  m_DefaultColliderType: 2
+  changeToOnInteraction: {fileID: 11400000, guid: 4a6b31fd95a2a9d4b906e3ff2cdeaa70,
+    type: 2}

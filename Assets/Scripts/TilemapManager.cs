@@ -9,7 +9,9 @@ public class TilemapManager : MonoBehaviour
     public static TilemapManager instance;
 
     private Grid grid;
-    private Tilemap tilemap;
+    private Tilemap plattformTilemap;
+    [SerializeField]
+    private Tilemap itemTilemap = null;
 
     private Queue<KeyValuePair<Vector3Int, TileBase>> orders;
 
@@ -17,12 +19,13 @@ public class TilemapManager : MonoBehaviour
     {
         instance = this;
         orders = new Queue<KeyValuePair<Vector3Int, TileBase>>();
+        //itemTilemap.GetComponent<TilemapRenderer>().enabled = false;
     }
 
     void Start()
     {
         grid = transform.GetComponentInParent<Grid>();
-        tilemap = transform.GetComponent<Tilemap>();
+        plattformTilemap = transform.GetComponent<Tilemap>();
     }
 
     void Update()
@@ -30,8 +33,8 @@ public class TilemapManager : MonoBehaviour
         while (orders.Count > 0)
         {
             KeyValuePair<Vector3Int, TileBase> newTileSetOrder = orders.Dequeue();
-            tilemap.SetTile(newTileSetOrder.Key, newTileSetOrder.Value);
-            tilemap.RefreshTile(newTileSetOrder.Key);
+            plattformTilemap.SetTile(newTileSetOrder.Key, newTileSetOrder.Value);
+            plattformTilemap.RefreshTile(newTileSetOrder.Key);
         }
     }
 
@@ -40,14 +43,38 @@ public class TilemapManager : MonoBehaviour
         return grid.WorldToCell(position);
     }
 
+    public Vector3 CellToWorld(Vector3Int position)
+    {
+        return grid.CellToWorld(position) + plattformTilemap.tileAnchor;
+    }
+
     public void ChangeToOtherTileNextFrame(Vector3Int cellPosition, TileBase tile)
     {
-        orders.Enqueue(new KeyValuePair<Vector3Int, TileBase>(cellPosition, tile));
-        //Destroy(gameObject);
+        //orders.Enqueue(new KeyValuePair<Vector3Int, TileBase>(cellPosition, tile));
+        plattformTilemap.SetTile(cellPosition, tile);
+        //plattformTilemap.RefreshTile(cellPosition);
     }
 
     public void HitTile(Vector3Int cellPosition, Vector2 normal)
     {
-        tilemap.GetInstantiatedObject(cellPosition)?.GetComponent<InteractableBlock>()?.Hit(normal, this);
+        TileBase plattformTile = plattformTilemap.GetTile(cellPosition);
+        if (plattformTile != null)
+        {
+            (plattformTile as InteractableTile)?.Hit(cellPosition ,normal, this);
+        }
+    }
+
+    public GameObject GetItemFromTile(Vector3Int cellPosition)
+    {
+        GameObject dropItem = null;
+        TileBase tile = itemTilemap.GetTile(cellPosition);
+        if (tile != null)
+        {
+            dropItem = (tile as ItemTile).dropItemPrefab;
+            itemTilemap.SetTile(cellPosition, null);
+            //itemTilemap.RefreshTile(cellPosition);
+        }
+
+        return dropItem;
     }
 }
