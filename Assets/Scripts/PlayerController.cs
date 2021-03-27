@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Prime31;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,21 +16,22 @@ public class PlayerController : MonoBehaviour
     }
 
     public State state;
-    public float walkSpeed, runSpeed, jumpForce;
+    public float walkSpeed = 6f;
+    public float runSpeed = 8f;
+    public float groundDamping = 20f; // how fast do we change direction? higher means faster
+    public float inAirDamping = 5f;
+    public float jumpHeight = 3f;
     public GameObject projectilePrefab;
-    public LayerMask groundMask;
-    public float groundCheckOffset = 0.25f;
-    private bool isGrounded;
-    private bool wasGrounded;
-    private Vector2 lastVelocity;
     private bool isSprinting;
     private Vector2 rawInputMovement;
+    private Vector3 velocity;
+    private float normalizedHorizontalSpeed = 0;
 
+    private CharacterController2D controller;
     private SpriteRenderer render;
     private Animator anim;
     public float animSpeed = 0.2f;
 
-    private Rigidbody2D rigid;
     private Transform firePoint;
 
     public float invulnerabilityTime = 2f;
@@ -49,14 +51,14 @@ public class PlayerController : MonoBehaviour
     private float coyoteCounter;
 
     private bool frozenInAnimation;
-    private Coroutine injuredCoroutine;
+    private Coroutine injuredCoroutine = null;
 
     void Awake()
     {
         // setup script variables
         render = transform.Find("Sprite").GetComponent<SpriteRenderer>();
         anim = render.transform.GetComponent<Animator>();
-        rigid = GetComponent<Rigidbody2D>();
+        controller = GetComponent<CharacterController2D>();
         camTarget = transform.Find("CamTarget");
         firePoint = transform.Find("FirePoint");
     }
@@ -65,62 +67,57 @@ public class PlayerController : MonoBehaviour
     {
         // set animation speed
         anim?.SetFloat("animSpeed", animSpeed);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Physics2D.OverlapCircle(transform.position + Vector3.right * -groundCheckOffset, 0.1f, groundMask) ? Color.blue : Color.red;
-        Gizmos.DrawWireSphere(transform.position + Vector3.right * -groundCheckOffset, 0.1f);
-        Gizmos.color = Physics2D.OverlapCircle(transform.position + Vector3.right * groundCheckOffset, 0.1f, groundMask) ? Color.blue : Color.red;
-        Gizmos.DrawWireSphere(transform.position + Vector3.right * groundCheckOffset, 0.1f);
+        controller.onControllerCollidedEvent += OnControllerCollision;
     }
 
     void Update()
     {
         if (!frozenInAnimation)
         {
-            // move horizontally
-            rigid.velocity = new Vector2(rawInputMovement.x * (isSprinting ? runSpeed : walkSpeed), rigid.velocity.y);
-
-            // check if grounded
-            isGrounded = Physics2D.OverlapCircle(transform.position + Vector3.right * -groundCheckOffset, 0.1f, groundMask);
-            isGrounded = Physics2D.OverlapCircle(transform.position + Vector3.right * groundCheckOffset, 0.1f, groundMask) || isGrounded;
+            normalizedHorizontalSpeed = rawInputMovement.x;
 
             // manage coyote-time
-            coyoteCounter = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
+            coyoteCounter = controller.isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
 
             // flip the character
-            if (rigid.velocity.x > 0f)
+            if (normalizedHorizontalSpeed > 0.01f)
             {
+                normalizedHorizontalSpeed = 1f;
                 render.flipX = false;
                 firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x), firePoint.localPosition.y, firePoint.localPosition.z);
                 firePoint.localRotation = Quaternion.Euler(0f, 90f, 0f);
             }
-            else if (rigid.velocity.x < 0f)
+            else if (normalizedHorizontalSpeed < -0.01f)
             {
+                normalizedHorizontalSpeed = -1f;
                 render.flipX = true;
                 firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x) * -1f, firePoint.localPosition.y, firePoint.localPosition.z);
                 firePoint.localRotation = Quaternion.Euler(0f, -90f, 0f);
+            }
+            else
+            {
+                normalizedHorizontalSpeed = 0f;
             }
 
             // animate character
             if (anim != null)
             {
-                anim.SetFloat("xSpeed", Mathf.Abs(rigid.velocity.x));
-                anim.SetFloat("ySpeed", rigid.velocity.y);
-                anim.SetBool("grounded", isGrounded);
+                anim.SetFloat("xSpeed", Mathf.Abs(controller.velocity.x));
+                anim.SetFloat("ySpeed", controller.velocity.y);
+                anim.SetBool("grounded", controller.isGrounded);
                 anim.SetBool("sprint", isSprinting);
                 anim.SetBool("duck", rawInputMovement.y < -0.01f);
             }
-
-            // shoot
-            if (projectilePrefab != null && false)//TODO
-            {
-                rigid.velocity = Vector2.zero;
-                anim?.SetTrigger("shoot");
-                frozenInAnimation = true;
-            }
         }
+
+        // apply horizontal speed smoothing it. dont really do this with Lerp. Use SmoothDamp or something that provides more control
+        float smoothedMovementFactor = controller.isGrounded ? groundDamping : inAirDamping; // how fast do we change direction?
+        float speed = isSprinting ? runSpeed : walkSpeed;
+        velocity.x = Mathf.Lerp(velocity.x, normalizedHorizontalSpeed * speed, Time.deltaTime * smoothedMovementFactor);
+
+        velocity.y += Physics2D.gravity.y * Time.deltaTime;
+        controller.move(velocity * Time.deltaTime);
+        velocity = controller.velocity;
 
         // move camera point
         if (camTarget != null && rawInputMovement.x != 0f)
@@ -130,27 +127,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    void OnControllerCollision(RaycastHit2D hit)
     {
-        TilemapManager manager = collision.transform.GetComponent<TilemapManager>();
+        // bail out on plain old ground hits cause they arent very interesting
+        if (hit.normal.y == 1f)
+        {
+            return;
+        }
+        //Debug.Log("flags: " + controller.collisionState + ", hit.normal: " + hit.normal);
+
+        TilemapManager manager = hit.transform.GetComponent<TilemapManager>();
         if (manager != null)
         {
-            List<Vector3Int> cellContacts = new List<Vector3Int>(collision.contactCount);
-            foreach (ContactPoint2D hit in collision.contacts)
-            {
-                Vector3 hitPosition = Vector3.zero;
-                hitPosition.x = hit.point.x - 0.01f * hit.normal.x;
-                hitPosition.y = hit.point.y - 0.01f * hit.normal.y;
-                Vector3Int cellPosition = manager.WorldToCell(hitPosition);
-                if (cellContacts.Count == 0 || !cellContacts.Contains(cellPosition))
-                {
-                    cellContacts.Add(cellPosition);
-                    manager.HitTile(cellPosition, hit.normal);
-                }
-            }
+            Vector3 hitPosition = Vector3.zero;
+            hitPosition.x = hit.point.x - 0.01f * hit.normal.x;
+            hitPosition.y = hit.point.y - 0.01f * hit.normal.y;
+            Vector3Int cellPosition = manager.WorldToCell(hitPosition);
+            manager.HitTile(cellPosition, hit.normal);
         }
     }
 
+    /*
     void OnCollisionStay2D(Collision2D collision)
     {
         // get injured on enemy touch
@@ -161,35 +158,43 @@ public class PlayerController : MonoBehaviour
             injuredCoroutine = StartCoroutine(Invulnerability());
         }
     }
-
-    void LateUpdate()
-    {
-        wasGrounded = isGrounded;
-        lastVelocity = rigid.velocity;
-    }
+    */
 
     public void OnMovement(InputAction.CallbackContext callbackContext)
     {
+        if (!enabled)
+        {
+            return;
+        }
         rawInputMovement = callbackContext.ReadValue<Vector2>();
     }
 
     public void OnJump(InputAction.CallbackContext callbackContext)
     {
-        // jump in the air
-        if (callbackContext.started && coyoteCounter > 0f)
+        if (!enabled)
         {
-            rigid.velocity = new Vector2(rigid.velocity.x, jumpForce);
+            return;
+        }
+        // jump in the air
+        if (callbackContext.started && controller.isGrounded)// && coyoteCounter > 0f)
+        {
+            velocity.y = Mathf.Sqrt(2f * jumpHeight * -Physics2D.gravity.y);
+
             coyoteCounter = 0f;
         }
 
-        if (callbackContext.canceled && rigid.velocity.y > 0f)
+        if (callbackContext.canceled && controller.velocity.y > 0f)
         {
-            rigid.velocity = rigid.velocity.ToWithY(rigid.velocity.y * 0.5f);
+            controller.velocity = controller.velocity.ToWithY(controller.velocity.y * 0.5f);
         }
     }
 
     public void OnSprint(InputAction.CallbackContext callbackContext)
     {
+        if (!enabled)
+        {
+            return;
+        }
         if (callbackContext.ReadValueAsButton())
         {
             isSprinting = true;
@@ -219,13 +224,17 @@ public class PlayerController : MonoBehaviour
     {
         //knockback
         frozenInAnimation = true;
-        rigid.velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
+        controller.velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
         yield return new WaitForSeconds(knockbackTime);
         frozenInAnimation = false;
     }
 
     public void OnAnimationCallback(int i)
     {
+        if (!enabled)
+        {
+            return;
+        }
         // choose animation event callback by parameter
         switch (i)
         {
