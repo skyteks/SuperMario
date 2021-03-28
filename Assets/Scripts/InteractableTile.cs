@@ -69,12 +69,12 @@ public class InteractableTile : AnimatedTile
         controller.ToggleFreeze(true);
         Vector3 startPos = instance.transform.position;
         Vector3 endPos = startPos + direction.ToVector3();
-        float indexer = 0f;
+        float indexer = 0.25f;
         while (indexer != 1f)
         {
-            indexer = Mathf.Clamp01(indexer + Time.deltaTime);
             instance.transform.position = Vector3.Lerp(startPos, endPos, indexer);
             yield return null;
+            indexer = Mathf.Clamp01(indexer + Time.deltaTime);
         }
         controller.ToggleFreeze(false);
     }

@@ -1,10 +1,12 @@
 ﻿using Prime31;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 
+[RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MovementController
 {
     public enum State
@@ -15,6 +17,10 @@ public class PlayerController : MovementController
     }
 
     public State state;
+    public BoxCollider2D normalSize;
+    public BoxCollider2D superSize;
+    private Bounds normalSizeBounds;
+    private Bounds superSizeBounds;
     public float runSpeed = 8f;
     public float jumpHeight = 3f;
     public GameObject projectilePrefab;
@@ -47,6 +53,19 @@ public class PlayerController : MovementController
         // setup script variables
         camTarget = transform.Find("CamTarget");
         firePoint = transform.Find("FirePoint");
+
+        normalSizeBounds = new Bounds(normalSize.offset, normalSize.size);
+        superSizeBounds = new Bounds(superSize.offset, superSize.size);
+        normalSize.enabled = false;
+        superSize.enabled = true;
+        Destroy(normalSize);
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+
+        SetSize();
     }
 
     protected override void Update()
@@ -80,35 +99,27 @@ public class PlayerController : MovementController
 
     protected override void OnControllerCollision(RaycastHit2D hit)
     {
-        // bail out on plain old ground hits cause they arent very interesting
-        if (hit.normal.y == 1f)
-        {
-            return;
-        }
+        //Debug.Log("flags: " + controller.collisionState + ", hit.normal: " + hit.normal);
 
         TilemapManager manager = hit.transform.GetComponent<TilemapManager>();
-        if (manager != null)
+        if (manager != null && hit.normal.y != 1f)
         {
             Vector3 hitPosition = Vector3.zero;
             hitPosition.x = hit.point.x - 0.01f * hit.normal.x;
             hitPosition.y = hit.point.y - 0.01f * hit.normal.y;
+
             Vector3Int cellPosition = manager.WorldToCell(hitPosition);
             manager.HitTile(cellPosition, hit.normal);
         }
-    }
 
-    /*
-    void OnCollisionStay2D(Collision2D collision)
-    {
-        // get injured on enemy touch
-        EnemyController enemy = collision.transform.GetComponent<EnemyController>();
-        if (enemy != null && injuredCoroutine == null)
+        TriggerObject trigger = hit.transform.GetComponent<TriggerObject>();
+
+        Vector2 normal = (hit.collider.transform.position - transform.position).normalized;
+        if (trigger != null)
         {
-            StartCoroutine(Knockback(transform.position - collision.transform.position));
-            injuredCoroutine = StartCoroutine(Invulnerability());
+            trigger.Trigger(this, normal);
         }
     }
-    */
 
     protected override void FlipCharacter()
     {
@@ -157,17 +168,17 @@ public class PlayerController : MovementController
         {
             return;
         }
-        // jump in the air
-        if (callbackContext.started && controller.isGrounded)// && coyoteCounter > 0f)
+        if (!frozenInAnimation)
         {
-            velocity.y = Mathf.Sqrt(2f * jumpHeight * -Physics2D.gravity.y);
+            if (callbackContext.started && controller.isGrounded)// && coyoteCounter > 0f)
+            {
+                Bounce();
+            }
 
-            coyoteCounter = 0f;
-        }
-
-        if (callbackContext.canceled && controller.velocity.y > 0f)
-        {
-            controller.velocity = controller.velocity.ToWithY(controller.velocity.y * 0.5f);
+            if (callbackContext.canceled && controller.velocity.y > 0f)
+            {
+                controller.velocity = controller.velocity.ToWithY(controller.velocity.y * 0.5f);
+            }
         }
     }
 
@@ -202,13 +213,20 @@ public class PlayerController : MovementController
         injuredCoroutine = null;
     }
 
-    public IEnumerator Knockback(Vector3 direction)
+    public IEnumerator Knockback(Vector2 direction)
     {
         //knockback
-        frozenInAnimation = true;
-        controller.velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
+        ToggleFreeze(true);
+        velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
         yield return new WaitForSeconds(knockbackTime);
-        frozenInAnimation = false;
+        ToggleFreeze(false);
+    }
+
+    public void Bounce()
+    {
+        velocity.y = Mathf.Sqrt(2f * jumpHeight * -Physics2D.gravity.y);
+
+        coyoteCounter = 0f;
     }
 
     public void OnAnimationCallback(int i)
@@ -227,6 +245,71 @@ public class PlayerController : MovementController
                 frozenInAnimation = false;
                 break;
         }
+    }
+
+    public bool GetDamaged(Vector2 normal)
+    {
+        if (injuredCoroutine == null)
+        {
+            switch (state)
+            {
+                case State.Normal:
+                    Die();
+                    return true;
+                case State.Super:
+                    state = State.Normal;
+                    break;
+                case State.Fire:
+                    state = State.Super;
+                    break;
+            }
+            SetSize();
+
+            StartCoroutine(Knockback(normal));
+            injuredCoroutine = StartCoroutine(Invulnerability());
+            return true;
+        }
+        return false;
+    }
+
+    public void CollectPowerUp(State givenState)
+    {
+        if (state != State.Normal && state != State.Super && givenState == State.Super)
+        {
+            return;
+        }
+        else
+        {
+            state = givenState;
+            SetSize();
+        }
+    }
+
+    private void SetSize()
+    {
+        if (state == State.Normal)
+        {
+            superSize.offset = normalSizeBounds.center;
+            superSize.size = normalSizeBounds.size;
+        }
+        else
+        {
+            superSize.offset = superSizeBounds.center;
+            superSize.size = superSizeBounds.size;
+        }
+
+        anim.SetFloat("state", (float)((int)state));
+    }
+
+    private void Die()
+    {
+        ToggleFreeze(true);
+        anim?.SetTrigger("die");
+        controller.enabled = false;
+
+        superSize.enabled = false;
+
+        enabled = false;
     }
 
     private void SpawnProjectile()

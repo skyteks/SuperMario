@@ -28,10 +28,18 @@ public abstract class MovementController : MonoBehaviour
         rigid = GetComponent<Rigidbody2D>();
     }
 
-    protected virtual void Start()
+    protected virtual void OnEnable()
     {
-        //anim?.SetFloat("animSpeed", animSpeed);
+        if (anim != null)// for some reason using ?. doesn't work here
+        {
+            anim.SetFloat("animSpeed", animSpeed);
+        }
         controller.onControllerCollidedEvent += OnControllerCollision;
+    }
+
+    protected virtual void OnDisable()
+    {
+        controller.onControllerCollidedEvent -= OnControllerCollision;
     }
 
     protected virtual void Update()
@@ -39,7 +47,6 @@ public abstract class MovementController : MonoBehaviour
         if (!frozenInAnimation)
         {
             FlipCharacter();
-
         }
         Movement(walkSpeed);
 
@@ -55,7 +62,10 @@ public abstract class MovementController : MonoBehaviour
         velocity.x = Mathf.Lerp(velocity.x, normalizedHorizontalSpeed * speed, Time.deltaTime * smoothedMovementFactor);
 
         velocity.y += Physics2D.gravity.y * Time.deltaTime;
-        controller.move(velocity * Time.deltaTime);
+        if (controller.enabled)
+        {
+            controller.move(velocity * Time.deltaTime);
+        }
         velocity = controller.velocity;
     }
 

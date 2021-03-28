@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 7824383720190852015}
   - component: {fileID: 6040152676231610198}
   - component: {fileID: 4394164358347893763}
-  m_Layer: 0
+  - component: {fileID: 936596050915286057}
+  m_Layer: 11
   m_Name: 1-up Shroom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -75,7 +76,7 @@ MonoBehaviour:
     m_Bits: 256
   triggerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   oneWayPlatformMask:
     serializedVersion: 2
     m_Bits: 0
@@ -159,6 +160,20 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &936596050915286057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 824230560051293541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21aca5b4573e2a941aa4b63f7a1a1858, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  triggerType: 0
+  selfdestructOnTrigger: 1
 --- !u!1 &7681129878709217656
 GameObject:
   m_ObjectHideFlags: 0
@@ -169,7 +184,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2766458221777366843}
   - component: {fileID: 5619216269322005672}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

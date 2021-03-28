@@ -291,10 +291,9 @@ namespace Prime31
                 velocity.y = 0;
 
             // send off the collision events if we have a listener
-            if (onControllerCollidedEvent != null)
+            for (var i = 0; i < _raycastHitsThisFrame.Count && onControllerCollidedEvent != null; i++)
             {
-                for (var i = 0; i < _raycastHitsThisFrame.Count; i++)
-                    onControllerCollidedEvent(_raycastHitsThisFrame[i]);
+                onControllerCollidedEvent(_raycastHitsThisFrame[i]);
             }
 
             ignoreOneWayPlatformsThisFrame = false;

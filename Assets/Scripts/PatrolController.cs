@@ -6,9 +6,9 @@ public class PatrolController : MovementController
 {
     public float startDirectionX = -1f;
 
-    protected override void Start()
+    protected override void OnEnable()
     {
-        base.Start();
+        base.OnEnable();
         normalizedHorizontalSpeed = startDirectionX;
     }
 
