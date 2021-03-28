@@ -56,9 +56,9 @@ public class PlayerController : MovementController
 
         normalSizeBounds = new Bounds(normalSize.offset, normalSize.size);
         superSizeBounds = new Bounds(superSize.offset, superSize.size);
-        normalSize.enabled = false;
-        superSize.enabled = true;
-        Destroy(normalSize);
+        normalSize.enabled = true;
+        superSize.enabled = false;
+        Destroy(superSize);
     }
 
     protected override void OnEnable()
@@ -111,10 +111,12 @@ public class PlayerController : MovementController
             Vector3Int cellPosition = manager.WorldToCell(hitPosition);
             manager.HitTile(cellPosition, hit.normal);
         }
+    }
 
-        TriggerObject trigger = hit.transform.GetComponent<TriggerObject>();
-
-        Vector2 normal = (hit.collider.transform.position - transform.position).normalized;
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        TriggerObject trigger = collision.transform.GetComponent<TriggerObject>();
+        Vector2 normal = (collision.transform.position - transform.position).normalized;
         if (trigger != null)
         {
             trigger.Trigger(this, normal);
@@ -289,13 +291,13 @@ public class PlayerController : MovementController
     {
         if (state == State.Normal)
         {
-            superSize.offset = normalSizeBounds.center;
-            superSize.size = normalSizeBounds.size;
+            normalSize.offset = normalSizeBounds.center;
+            normalSize.size = normalSizeBounds.size;
         }
         else
         {
-            superSize.offset = superSizeBounds.center;
-            superSize.size = superSizeBounds.size;
+            normalSize.offset = superSizeBounds.center;
+            normalSize.size = superSizeBounds.size;
         }
 
         anim.SetFloat("state", (float)((int)state));
@@ -307,7 +309,7 @@ public class PlayerController : MovementController
         anim?.SetTrigger("die");
         controller.enabled = false;
 
-        superSize.enabled = false;
+        normalSize.enabled = false;
 
         enabled = false;
     }

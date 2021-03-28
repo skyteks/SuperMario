@@ -21,8 +21,12 @@ public class TriggerObject : MonoBehaviour
         switch (triggerType)
         {
             case TriggerTypes.Add1Live:
+                print("TODO: add extra life");
+                Destroy(gameObject);
                 break;
             case TriggerTypes.Add1Coin:
+                print("TODO: add coin");
+                Destroy(gameObject);
                 break;
             case TriggerTypes.PowerUp:
                 player.CollectPowerUp(powerUpType);
