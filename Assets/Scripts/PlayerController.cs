@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MovementController
 {
     public enum State
     {
@@ -16,21 +15,11 @@ public class PlayerController : MonoBehaviour
     }
 
     public State state;
-    public float walkSpeed = 6f;
     public float runSpeed = 8f;
-    public float groundDamping = 20f; // how fast do we change direction? higher means faster
-    public float inAirDamping = 5f;
     public float jumpHeight = 3f;
     public GameObject projectilePrefab;
     private bool isSprinting;
     private Vector2 rawInputMovement;
-    private Vector3 velocity;
-    private float normalizedHorizontalSpeed = 0;
-
-    private CharacterController2D controller;
-    private SpriteRenderer render;
-    private Animator anim;
-    public float animSpeed = 0.2f;
 
     private Transform firePoint;
 
@@ -50,27 +39,17 @@ public class PlayerController : MonoBehaviour
     public float coyoteTime = 0.1f;
     private float coyoteCounter;
 
-    private bool frozenInAnimation;
     private Coroutine injuredCoroutine = null;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         // setup script variables
-        render = transform.Find("Sprite").GetComponent<SpriteRenderer>();
-        anim = render.transform.GetComponent<Animator>();
-        controller = GetComponent<CharacterController2D>();
         camTarget = transform.Find("CamTarget");
         firePoint = transform.Find("FirePoint");
     }
 
-    void Start()
-    {
-        // set animation speed
-        anim?.SetFloat("animSpeed", animSpeed);
-        controller.onControllerCollidedEvent += OnControllerCollision;
-    }
-
-    void Update()
+    protected override void Update()
     {
         if (!frozenInAnimation)
         {
@@ -79,47 +58,19 @@ public class PlayerController : MonoBehaviour
             // manage coyote-time
             coyoteCounter = controller.isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
 
-            // flip the character
-            if (normalizedHorizontalSpeed > 0.01f)
-            {
-                normalizedHorizontalSpeed = 1f;
-                render.flipX = false;
-                firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x), firePoint.localPosition.y, firePoint.localPosition.z);
-                firePoint.localRotation = Quaternion.Euler(0f, 90f, 0f);
-            }
-            else if (normalizedHorizontalSpeed < -0.01f)
-            {
-                normalizedHorizontalSpeed = -1f;
-                render.flipX = true;
-                firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x) * -1f, firePoint.localPosition.y, firePoint.localPosition.z);
-                firePoint.localRotation = Quaternion.Euler(0f, -90f, 0f);
-            }
-            else
-            {
-                normalizedHorizontalSpeed = 0f;
-            }
+            FlipCharacter();
 
-            // animate character
-            if (anim != null)
-            {
-                anim.SetFloat("xSpeed", Mathf.Abs(controller.velocity.x));
-                anim.SetFloat("ySpeed", controller.velocity.y);
-                anim.SetBool("grounded", controller.isGrounded);
-                anim.SetBool("sprint", isSprinting);
-                anim.SetBool("duck", rawInputMovement.y < -0.01f);
-            }
+            float speed = isSprinting ? runSpeed : walkSpeed;
+            Movement(speed);
+
         }
+        Animate();
 
-        // apply horizontal speed smoothing it. dont really do this with Lerp. Use SmoothDamp or something that provides more control
-        float smoothedMovementFactor = controller.isGrounded ? groundDamping : inAirDamping; // how fast do we change direction?
-        float speed = isSprinting ? runSpeed : walkSpeed;
-        velocity.x = Mathf.Lerp(velocity.x, normalizedHorizontalSpeed * speed, Time.deltaTime * smoothedMovementFactor);
+        MoveCamTarget();
+    }
 
-        velocity.y += Physics2D.gravity.y * Time.deltaTime;
-        controller.move(velocity * Time.deltaTime);
-        velocity = controller.velocity;
-
-        // move camera point
+    private void MoveCamTarget()
+    {
         if (camTarget != null && rawInputMovement.x != 0f)
         {
             float lerp = Mathf.Lerp(camTarget.localPosition.x, camAheadAmount * rawInputMovement.x, camAheadSpeed * Time.deltaTime);
@@ -127,14 +78,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnControllerCollision(RaycastHit2D hit)
+    protected override void OnControllerCollision(RaycastHit2D hit)
     {
         // bail out on plain old ground hits cause they arent very interesting
         if (hit.normal.y == 1f)
         {
             return;
         }
-        //Debug.Log("flags: " + controller.collisionState + ", hit.normal: " + hit.normal);
 
         TilemapManager manager = hit.transform.GetComponent<TilemapManager>();
         if (manager != null)
@@ -159,6 +109,38 @@ public class PlayerController : MonoBehaviour
         }
     }
     */
+
+    protected override void FlipCharacter()
+    {
+        if (normalizedHorizontalSpeed > 0.01f)
+        {
+            normalizedHorizontalSpeed = 1f;
+            render.flipX = false;
+            firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x), firePoint.localPosition.y, firePoint.localPosition.z);
+            firePoint.localRotation = Quaternion.Euler(0f, 90f, 0f);
+        }
+        else if (normalizedHorizontalSpeed < -0.01f)
+        {
+            normalizedHorizontalSpeed = -1f;
+            render.flipX = true;
+            firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x) * -1f, firePoint.localPosition.y, firePoint.localPosition.z);
+            firePoint.localRotation = Quaternion.Euler(0f, -90f, 0f);
+        }
+        else
+        {
+            normalizedHorizontalSpeed = 0f;
+        }
+    }
+
+    protected override void Animate()
+    {
+        base.Animate();
+        if (anim != null)
+        {
+            anim.SetBool("sprint", isSprinting);
+            anim.SetBool("duck", rawInputMovement.y < -0.01f);
+        }
+    }
 
     public void OnMovement(InputAction.CallbackContext callbackContext)
     {

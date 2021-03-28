@@ -29,11 +29,13 @@ public class Projectile : MonoBehaviour
     void OnTriggerEnter2D(Collider2D collision)
     {
         // damage enemy on impact
+        /*
         EnemyController enemy = collision.gameObject.GetComponent<EnemyController>();
         if (enemy != null)
         {
             enemy.SufferAttack();
         }
+        */
 
         // selfdestruct on impact
         Destroy(gameObject);

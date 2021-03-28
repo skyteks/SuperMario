@@ -57,24 +57,25 @@ public class InteractableTile : AnimatedTile
         GameObject dropItemPrefab = manager.GetItemFromTile(cellPos);
         if (dropItemPrefab != null)
         {
-            GameObject dropInstance = Instantiate(dropItemPrefab, manager.CellToWorld(cellPos), Quaternion.identity);
+            GameObject dropInstance = Instantiate(dropItemPrefab, manager.CellToWorld(cellPos) + Vector3.down * 0.5f, Quaternion.identity);
             manager.StartCoroutine(MoveOneCellIntoDirection(dropInstance, outDirection));
+            //dropInstance.transform.Translate(Vector3.up);
         }
     }
 
     private IEnumerator MoveOneCellIntoDirection(GameObject instance, Vector2 direction)
     {
-        Rigidbody2D rigid = instance.GetComponent<Rigidbody2D>();
-        rigid?.Freeze(true);
+        MovementController controller = instance.GetComponent<MovementController>();
+        controller.ToggleFreeze(true);
         Vector3 startPos = instance.transform.position;
         Vector3 endPos = startPos + direction.ToVector3();
         float indexer = 0f;
         while (indexer != 1f)
         {
-            indexer += Time.deltaTime;
+            indexer = Mathf.Clamp01(indexer + Time.deltaTime);
             instance.transform.position = Vector3.Lerp(startPos, endPos, indexer);
             yield return null;
         }
-        rigid?.Freeze(false);
+        controller.ToggleFreeze(false);
     }
 }
