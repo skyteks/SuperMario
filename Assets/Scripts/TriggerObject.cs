@@ -21,11 +21,11 @@ public class TriggerObject : MonoBehaviour
         switch (triggerType)
         {
             case TriggerTypes.Add1Live:
-                print("TODO: add extra life");
+                player.AddLive();
                 Destroy(gameObject);
                 break;
             case TriggerTypes.Add1Coin:
-                print("TODO: add coin");
+                player.AddCoin();
                 Destroy(gameObject);
                 break;
             case TriggerTypes.PowerUp:
@@ -33,6 +33,7 @@ public class TriggerObject : MonoBehaviour
                 Destroy(gameObject);
                 break;
             case TriggerTypes.Damage:
+                print(normal.y);
                 if (normal.y < -0.8f)
                 {
                     player.Bounce();

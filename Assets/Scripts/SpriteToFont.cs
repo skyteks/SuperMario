@@ -35,7 +35,7 @@ public class SpriteToFont : MonoBehaviour
     private void SetDigids()
     {
         int temp = number;
-        bool stillZero = false;
+        bool show = false;
         for (int digid = digids.Length - 1; digid >= 0; digid--)
         {
             int pow = (int)Mathf.Pow(10, digid);
@@ -43,16 +43,15 @@ public class SpriteToFont : MonoBehaviour
             int num;
             if (temp < pow)
             {
-                stillZero = digid > 0;
                 num = 0;
             }
             else
             {
-                stillZero = false;
                 rest = temp % pow;
                 num = (temp - rest) / pow;
             }
-            SetDigid(digid, num, stillZero);
+            show = num != 0 || digid == 0 || show;
+            SetDigid(digid, num, !show);
             temp -= pow * num;
         }
     }

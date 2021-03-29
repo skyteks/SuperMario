@@ -22,7 +22,6 @@ public class ActivateOnScreentime : MonoBehaviour
     {
         if (cameraFollow.rect.Contains(transform.position))
         {
-            print("disable");
             foreach (MonoBehaviour component in components)
             {
                 component.enabled = true;

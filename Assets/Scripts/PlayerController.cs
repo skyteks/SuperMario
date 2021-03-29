@@ -9,7 +9,7 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MovementController
 {
-    public enum State
+    public enum State : int
     {
         Normal,
         Super,
@@ -27,10 +27,14 @@ public class PlayerController : MovementController
     private bool isSprinting;
     private Vector2 rawInputMovement;
 
+    private AudioPlayer sound;
+
     private Transform firePoint;
 
+    private bool invulnerarble;
+    public float growTime = 1f;
     public float invulnerabilityTime = 2f;
-    public float knockbackTime = 0.5f;
+    public float knockbackTime = 1f;
     public Vector2 knockBackForce = new Vector2(1f, 0.2f);
 
     [Space]
@@ -45,7 +49,7 @@ public class PlayerController : MovementController
     public float coyoteTime = 0.1f;
     private float coyoteCounter;
 
-    private Coroutine injuredCoroutine = null;
+    private Coroutine animCoroutine = null;
 
     protected override void Awake()
     {
@@ -53,6 +57,8 @@ public class PlayerController : MovementController
         // setup script variables
         camTarget = transform.Find("CamTarget");
         firePoint = transform.Find("FirePoint");
+
+        sound = GetComponentInChildren<AudioPlayer>();
 
         normalSizeBounds = new Bounds(normalSize.offset, normalSize.size);
         superSizeBounds = new Bounds(superSize.offset, superSize.size);
@@ -65,7 +71,7 @@ public class PlayerController : MovementController
     {
         base.OnEnable();
 
-        SetSize();
+        SetSize(state, false);
     }
 
     protected override void Update()
@@ -200,8 +206,21 @@ public class PlayerController : MovementController
         }
     }
 
+    public IEnumerator Grow()
+    {
+        invulnerarble = true;
+        ToggleFreeze(true);
+        GameManager.Instance.freeze = true;
+        yield return new WaitForSeconds(growTime);
+        GameManager.Instance.freeze = false;
+        ToggleFreeze(false);
+        invulnerarble = false;
+        animCoroutine = null;
+    }
+
     public IEnumerator Invulnerability()
     {
+        invulnerarble = true;
         float stopAt = Time.time + invulnerabilityTime;
 
         // blinking invulnerability
@@ -211,16 +230,18 @@ public class PlayerController : MovementController
             yield return new WaitForSeconds(0.2f);
         }
         render.enabled = true;
-
-        injuredCoroutine = null;
+        invulnerarble = false;
+        animCoroutine = null;
     }
 
     public IEnumerator Knockback(Vector2 direction)
     {
         //knockback
         ToggleFreeze(true);
+        GameManager.Instance.freeze = true;
         velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
         yield return new WaitForSeconds(knockbackTime);
+        GameManager.Instance.freeze = false;
         ToggleFreeze(false);
     }
 
@@ -229,6 +250,8 @@ public class PlayerController : MovementController
         velocity.y = Mathf.Sqrt(2f * jumpHeight * -Physics2D.gravity.y);
 
         coyoteCounter = 0f;
+
+        sound?.Play(state == State.Normal ? "jump normal" : "jump super");
     }
 
     public void OnAnimationCallback(int i)
@@ -251,24 +274,25 @@ public class PlayerController : MovementController
 
     public bool GetDamaged(Vector2 normal)
     {
-        if (injuredCoroutine == null)
+        if (!invulnerarble)
         {
+            State newState = State.Normal;
             switch (state)
             {
                 case State.Normal:
                     Die();
                     return true;
                 case State.Super:
-                    state = State.Normal;
+                    newState = State.Normal;
                     break;
                 case State.Fire:
-                    state = State.Super;
+                    newState = State.Super;
                     break;
             }
-            SetSize();
+            SetSize(newState, false);
 
             StartCoroutine(Knockback(normal));
-            injuredCoroutine = StartCoroutine(Invulnerability());
+            animCoroutine = StartCoroutine(Invulnerability());
             return true;
         }
         return false;
@@ -282,14 +306,33 @@ public class PlayerController : MovementController
         }
         else
         {
-            state = givenState;
-            SetSize();
+            SetSize(givenState, true);
+            sound?.Play("powerup");
+            animCoroutine = StartCoroutine(Grow());
         }
     }
 
-    private void SetSize()
+    public void AddLive()
     {
-        if (state == State.Normal)
+        GameManager.Instance.AddLive();
+        sound?.Play("1-up");
+    }
+
+    public void AddCoin()
+    {
+        if (GameManager.Instance.AddCoin())
+        {
+            sound?.Play("coin");
+        }
+        else
+        {
+            sound?.Play("1-up");
+        }
+    }
+
+    private void SetSize(State newState, bool doAnim)
+    {
+        if (newState == State.Normal)
         {
             normalSize.offset = normalSizeBounds.center;
             normalSize.size = normalSizeBounds.size;
@@ -300,13 +343,21 @@ public class PlayerController : MovementController
             normalSize.size = superSizeBounds.size;
         }
 
-        anim.SetFloat("state", (float)((int)state));
+        anim?.SetFloat("state", (int)newState);
+
+        if (state == State.Normal && newState == State.Super)
+        {
+            anim?.SetTrigger("grow");
+        }
+
+        state = newState;
     }
 
     private void Die()
     {
         ToggleFreeze(true);
         anim?.SetTrigger("die");
+        sound?.Play("die");
         controller.enabled = false;
 
         normalSize.enabled = false;
