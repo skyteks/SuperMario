@@ -21,11 +21,15 @@ public class PlayerController : MovementController
     public BoxCollider2D superSize;
     private Bounds normalSizeBounds;
     private Bounds superSizeBounds;
-    public float runSpeed = 8f;
+    public float runSpeed = 9f;
+    public float sprintSpeed = 12;
     public float jumpHeight = 3f;
     public GameObject projectilePrefab;
-    private bool isSprinting;
+    private bool shouldRun;
+    private float runningTimer;
+    public float runToSprintTime = 2f;
     private Vector2 rawInputMovement;
+    private bool rawJumpPressed;
 
     private Transform firePoint;
 
@@ -79,11 +83,13 @@ public class PlayerController : MovementController
             // manage coyote-time
             coyoteCounter = controller.isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
 
+            runningTimer = shouldRun && Math.Abs(normalizedHorizontalSpeed) > 0.1f ? Mathf.Max(0f, runningTimer - Time.deltaTime) : runToSprintTime;
+
             FlipCharacter();
 
-            float speed = isSprinting ? runSpeed : walkSpeed;
-            Movement(speed);
+            float speed = shouldRun ? (runningTimer == 0f ? sprintSpeed : runSpeed) : walkSpeed;
 
+            Movement(speed);
         }
         Animate();
 
@@ -121,6 +127,10 @@ public class PlayerController : MovementController
         if (normalizedHorizontalSpeed > 0.01f)
         {
             normalizedHorizontalSpeed = 1f;
+            if (render.flipX)
+            {
+            runningTimer = runToSprintTime;
+            }
             render.flipX = false;
             firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x), firePoint.localPosition.y, firePoint.localPosition.z);
             firePoint.localRotation = Quaternion.Euler(0f, 90f, 0f);
@@ -147,7 +157,6 @@ public class PlayerController : MovementController
         base.Animate();
         if (anim != null)
         {
-            anim.SetBool("sprint", isSprinting);
             anim.SetBool("duck", rawInputMovement.y < -0.01f);
         }
     }
@@ -169,14 +178,19 @@ public class PlayerController : MovementController
         }
         if (!frozenInAnimation)
         {
-            if (callbackContext.started && controller.isGrounded)// && coyoteCounter > 0f)
+            if (callbackContext.started)
             {
-                Bounce();
+                rawJumpPressed = true;
+                if (controller.isGrounded && coyoteCounter > 0f)
+                {
+                    Bounce();
+                }
             }
 
             if (callbackContext.canceled && controller.velocity.y > 0f)
             {
-                controller.velocity = controller.velocity.ToWithY(controller.velocity.y * 0.5f);
+                rawJumpPressed = false;
+                velocity = velocity.ToWithY(velocity.y * 0.5f);
             }
         }
     }
@@ -189,12 +203,13 @@ public class PlayerController : MovementController
         }
         if (callbackContext.ReadValueAsButton())
         {
-            isSprinting = true;
+            shouldRun = true;
         }
         else if (callbackContext.canceled)
         {
-            isSprinting = false;
+            shouldRun = false;
         }
+        runningTimer = runToSprintTime;
     }
 
     public IEnumerator Grow()
@@ -238,7 +253,7 @@ public class PlayerController : MovementController
 
     public void Bounce()
     {
-        velocity.y = Mathf.Sqrt(2f * jumpHeight * -Physics2D.gravity.y);
+        velocity.y = Mathf.Sqrt((rawJumpPressed ? 2f : 1f) * jumpHeight * -Physics2D.gravity.y);
 
         coyoteCounter = 0f;
 

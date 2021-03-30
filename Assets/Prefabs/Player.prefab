@@ -212,8 +212,10 @@ MonoBehaviour:
   normalSize: {fileID: 1113215059}
   superSize: {fileID: 8456761518681957440}
   runSpeed: 10
+  sprintSpeed: 14
   jumpHeight: 4.1
   projectilePrefab: {fileID: 0}
+  runToSprintTime: 1.2
   growTime: 1
   invulnerabilityTime: 2
   knockbackTime: 1
