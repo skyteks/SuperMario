@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
+  m_Script: {fileID: 11500000, guid: cdc6986631cba244b8548ec04ffafe4b, type: 3}
   m_Name: face block
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: 21301922, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
@@ -34,3 +34,4 @@ MonoBehaviour:
   m_InstancedGameObject: {fileID: 0}
   m_Flags: 1
   m_ColliderType: 2
+  changeToOnInteraction: {fileID: 0}

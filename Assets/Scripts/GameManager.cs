@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
 {
+    public PlayerController player;
+
     private int lives;
     private int coins;
 
@@ -15,7 +17,14 @@ public class GameManager : Singleton<GameManager>
 
     public bool freeze;
 
-    private void Update()
+    private AudioPlayer audioPlayer;
+
+    void Start()
+    {
+        audioPlayer = GetComponent<AudioPlayer>();
+    }
+
+    void Update()
     {
         timer = Mathf.Min(0f, timer - Time.deltaTime);
 
@@ -41,17 +50,30 @@ public class GameManager : Singleton<GameManager>
     public void AddLive()
     {
         lives++;
+        PlaySound("1-up");
     }
 
-    public bool AddCoin()
+    public void AddCoin()
     {
         coins++;
         if (coins >= 100)
         {
             coins = 0;
             AddLive();
-            return false;
         }
-        return true;
+        else
+        {
+        PlaySound("coin");
+        }
+    }
+
+    public void PlaySound(string soundCommand)
+    {
+        audioPlayer?.Play(soundCommand);
+    }
+
+    public void StopPlayerMovementY()
+    {
+        player.StopMovementY();
     }
 }

@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 [System.Serializable]
-[CreateAssetMenu(fileName = "New Interactable Tile", menuName = "Tiles/Interactable Tile")]
-public class InteractableTile : Tile
+[CreateAssetMenu(fileName = "New Animated Interactable Tile", menuName = "Tiles/Animated Interactable Tile")]
+public class AnimatedInteractableTile : AnimatedTile
 {
     public TileBase changeToOnInteraction;
 

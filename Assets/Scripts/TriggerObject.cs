@@ -13,19 +13,26 @@ public class TriggerObject : MonoBehaviour
     }
 
     public TriggerTypes triggerType;
-
     public PlayerController.State powerUpType;
+    public string spawnSound;
+
+    public readonly float minTriggerNormalY = -0.7f;
+
+    void Start()
+    {
+        GameManager.Instance.PlaySound(spawnSound);
+    }
 
     public void Trigger(PlayerController player, Vector2 normal)
     {
         switch (triggerType)
         {
             case TriggerTypes.Add1Live:
-                player.AddLive();
+                GameManager.Instance.AddLive();
                 Destroy(gameObject);
                 break;
             case TriggerTypes.Add1Coin:
-                player.AddCoin();
+                GameManager.Instance.AddCoin();
                 Destroy(gameObject);
                 break;
             case TriggerTypes.PowerUp:
@@ -33,8 +40,7 @@ public class TriggerObject : MonoBehaviour
                 Destroy(gameObject);
                 break;
             case TriggerTypes.Damage:
-                print(normal.y);
-                if (normal.y < -0.8f)
+                if (normal.y < minTriggerNormalY)
                 {
                     player.Bounce();
                     Destroy(gameObject);

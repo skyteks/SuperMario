@@ -10,25 +10,27 @@ public class AudioPlayer : MonoBehaviour
     {
         public string name;
         public AudioClip clip;
+        [Range(0f, 1f)]
+        public float volume;
     }
 
     public AudioCommand[] cases;
 
-    private Dictionary<string, AudioClip> dictionary;
+    private Dictionary<string, AudioCommand> dictionary;
 
     private AudioSource source;
 
     private void Awake()
     {
         source = GetComponent<AudioSource>();
-        dictionary = new Dictionary<string, AudioClip>();
+        dictionary = new Dictionary<string, AudioCommand>();
     }
 
     void Start()
     {
         foreach (AudioCommand command in cases)
         {
-            dictionary.Add(command.name, command.clip);
+            dictionary.Add(command.name, command);
         }
         cases = null;
     }
@@ -36,10 +38,10 @@ public class AudioPlayer : MonoBehaviour
 
     public void Play(string name)
     {
-        AudioClip clip;
-        if (dictionary.TryGetValue(name, out clip))
+        AudioCommand command;
+        if (dictionary.TryGetValue(name, out command))
         {
-            source.PlayOneShot(clip, source.volume);
+            source.PlayOneShot(command.clip, source.volume * command.volume);
         }
     }
 }

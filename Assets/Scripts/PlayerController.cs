@@ -27,8 +27,6 @@ public class PlayerController : MovementController
     private bool isSprinting;
     private Vector2 rawInputMovement;
 
-    private AudioPlayer sound;
-
     private Transform firePoint;
 
     private bool invulnerarble;
@@ -57,8 +55,6 @@ public class PlayerController : MovementController
         // setup script variables
         camTarget = transform.Find("CamTarget");
         firePoint = transform.Find("FirePoint");
-
-        sound = GetComponentInChildren<AudioPlayer>();
 
         normalSizeBounds = new Bounds(normalSize.offset, normalSize.size);
         superSizeBounds = new Bounds(superSize.offset, superSize.size);
@@ -92,15 +88,6 @@ public class PlayerController : MovementController
         Animate();
 
         MoveCamTarget();
-    }
-
-    private void MoveCamTarget()
-    {
-        if (camTarget != null && rawInputMovement.x != 0f)
-        {
-            float lerp = Mathf.Lerp(camTarget.localPosition.x, camAheadAmount * rawInputMovement.x, camAheadSpeed * Time.deltaTime);
-            camTarget.localPosition = new Vector2(lerp, camAheadUpOffset);
-        }
     }
 
     protected override void OnControllerCollision(RaycastHit2D hit)
@@ -141,6 +128,10 @@ public class PlayerController : MovementController
         else if (normalizedHorizontalSpeed < -0.01f)
         {
             normalizedHorizontalSpeed = -1f;
+            if (!render.flipX)
+            {
+            runningTimer = runToSprintTime;
+            }
             render.flipX = true;
             firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x) * -1f, firePoint.localPosition.y, firePoint.localPosition.z);
             firePoint.localRotation = Quaternion.Euler(0f, -90f, 0f);
@@ -251,7 +242,7 @@ public class PlayerController : MovementController
 
         coyoteCounter = 0f;
 
-        sound?.Play(state == State.Normal ? "jump normal" : "jump super");
+        GameManager.Instance.PlaySound(state == State.Normal ? "jump normal" : "jump super");
     }
 
     public void OnAnimationCallback(int i)
@@ -307,26 +298,8 @@ public class PlayerController : MovementController
         else
         {
             SetSize(givenState, true);
-            sound?.Play("powerup");
+            GameManager.Instance.PlaySound("powerup");
             animCoroutine = StartCoroutine(Grow());
-        }
-    }
-
-    public void AddLive()
-    {
-        GameManager.Instance.AddLive();
-        sound?.Play("1-up");
-    }
-
-    public void AddCoin()
-    {
-        if (GameManager.Instance.AddCoin())
-        {
-            sound?.Play("coin");
-        }
-        else
-        {
-            sound?.Play("1-up");
         }
     }
 
@@ -357,12 +330,18 @@ public class PlayerController : MovementController
     {
         ToggleFreeze(true);
         anim?.SetTrigger("die");
-        sound?.Play("die");
+        GameManager.Instance.PlaySound("die");
         controller.enabled = false;
 
         normalSize.enabled = false;
 
         enabled = false;
+    }
+
+    public void StopMovementY()
+    {
+        velocity.y = 0f;
+        controller.velocity.y = 0f;
     }
 
     private void SpawnProjectile()
@@ -372,5 +351,14 @@ public class PlayerController : MovementController
 
         // flip projectile
         projectileInstance.GetComponent<Projectile>().spriteRenderer.flipX = render.flipX;
+    }
+
+    private void MoveCamTarget()
+    {
+        if (camTarget != null && rawInputMovement.x != 0f)
+        {
+            float lerp = Mathf.Lerp(camTarget.localPosition.x, camAheadAmount * rawInputMovement.x, camAheadSpeed * Time.deltaTime);
+            camTarget.localPosition = new Vector2(lerp, camAheadUpOffset);
+        }
     }
 }

@@ -50,9 +50,10 @@ public class TilemapManager : MonoBehaviour
 
     public void ChangeToOtherTileNextFrame(Vector3Int cellPosition, TileBase tile)
     {
-        //orders.Enqueue(new KeyValuePair<Vector3Int, TileBase>(cellPosition, tile));
         plattformTilemap.SetTile(cellPosition, tile);
         //plattformTilemap.RefreshTile(cellPosition);
+
+        GameManager.Instance.PlaySound(tile == null ? "break block" : "bump block");
     }
 
     public void HitTile(Vector3Int cellPosition, Vector2 normal)
@@ -60,7 +61,21 @@ public class TilemapManager : MonoBehaviour
         TileBase plattformTile = plattformTilemap.GetTile(cellPosition);
         if (plattformTile != null)
         {
-            (plattformTile as InteractableTile)?.Hit(cellPosition ,normal, this);
+            if (plattformTile is AnimatedInteractableTile)
+            {
+                (plattformTile as AnimatedInteractableTile)?.Hit(cellPosition, normal, this);
+            }
+            else if (plattformTile is InteractableTile)
+            {
+                (plattformTile as InteractableTile)?.Hit(cellPosition, normal, this);
+            }
+            else
+            {
+                if (normal.y < 0f)
+                {
+                    GameManager.Instance.PlaySound("bump block");
+                }
+            }
         }
     }
 

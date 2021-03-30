@@ -20,8 +20,7 @@ MonoBehaviour:
   m_MinSpeed: 5
   m_MaxSpeed: 5
   m_AnimationStartTime: 0
-  m_TileColliderType: 0
+  m_TileColliderType: 2
   m_DefaultGameObject: {fileID: 0}
-  m_DefaultColliderType: 2
   changeToOnInteraction: {fileID: 11400000, guid: 4a6b31fd95a2a9d4b906e3ff2cdeaa70,
     type: 2}
