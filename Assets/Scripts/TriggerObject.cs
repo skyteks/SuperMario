@@ -14,13 +14,16 @@ public class TriggerObject : MonoBehaviour
 
     public TriggerTypes triggerType;
     public PlayerController.State powerUpType;
-    public string spawnSound;
+    public bool playPowerupSpawnSound;
 
     public readonly float minTriggerNormalY = -0.7f;
 
     void Start()
     {
-        GameManager.Instance.PlaySound(spawnSound);
+        if (playPowerupSpawnSound)
+        {
+            GameManager.Instance.PlaySound("powerup spawn");
+        }
     }
 
     public void Trigger(PlayerController player, Vector2 normal)

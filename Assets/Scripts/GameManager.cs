@@ -22,6 +22,8 @@ public class GameManager : Singleton<GameManager>
     void Start()
     {
         audioPlayer = GetComponent<AudioPlayer>();
+
+        StartCoroutine(CheckIfFallenToDeath());
     }
 
     void Update()
@@ -63,7 +65,7 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-        PlaySound("coin");
+            PlaySound("coin");
         }
     }
 
@@ -75,5 +77,32 @@ public class GameManager : Singleton<GameManager>
     public void StopPlayerMovementY()
     {
         player.StopMovementY();
+    }
+
+    private IEnumerator CheckIfFallenToDeath()
+    {
+        for (; ; )
+        {
+            if (player.transform.position.y < -2.5f)
+            {
+                player.Die();
+                yield break;
+            }
+            yield return null;
+        }
+    }
+
+    public void QuitSoon()
+    {
+        StartCoroutine(Quit());
+    }
+
+    private IEnumerator Quit()
+    {
+        yield return new WaitForSeconds(5f);
+        Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 }

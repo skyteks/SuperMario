@@ -341,7 +341,7 @@ public class PlayerController : MovementController
         state = newState;
     }
 
-    private void Die()
+    public void Die()
     {
         ToggleFreeze(true);
         anim?.SetTrigger("die");
@@ -351,6 +351,8 @@ public class PlayerController : MovementController
         normalSize.enabled = false;
 
         enabled = false;
+
+        GameManager.Instance.QuitSoon();
     }
 
     public void StopMovementY()
