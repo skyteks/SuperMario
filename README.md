@@ -12,3 +12,5 @@ A graphical Super Mario World clone, with gameplay similar to New Super Mario Br
 ## Authors
 
 * **Daniel Emig** - https://github.com/skyteks
+
+* **Nintendo Co., Ltd.** - Art & Sound Assets, All rights reserved.
