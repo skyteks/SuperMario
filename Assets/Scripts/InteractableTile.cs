@@ -65,7 +65,7 @@ public class InteractableTile : Tile
     private IEnumerator MoveOneCellIntoDirection(GameObject instance, Vector2 direction)
     {
         MovementController controller = instance.GetComponent<MovementController>();
-        controller.ToggleFreeze(true);
+        controller?.ToggleFreeze(true);
         Vector3 startPos = instance.transform.position;
         Vector3 endPos = startPos + direction.ToVector3();
         float indexer = 0.25f;
@@ -75,6 +75,6 @@ public class InteractableTile : Tile
             yield return null;
             indexer = Mathf.Clamp01(indexer + Time.deltaTime);
         }
-        controller.ToggleFreeze(false);
+        controller?.ToggleFreeze(false);
     }
 }
