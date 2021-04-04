@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdc6986631cba244b8548ec04ffafe4b, type: 3}
+  m_Script: {fileID: 11500000, guid: e74232b7abb9c754f84d06eab6a11edc, type: 3}
   m_Name: invisible block
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: 0}
@@ -36,3 +36,5 @@ MonoBehaviour:
   m_ColliderType: 2
   changeToOnInteraction: {fileID: 11400000, guid: 4a6b31fd95a2a9d4b906e3ff2cdeaa70,
     type: 2}
+  playerSprite: {fileID: 0}
+  editorSprite: {fileID: 21301888, guid: b6db1a4628452b747b90ece8ab0af8c8, type: 3}
