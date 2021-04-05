@@ -16,8 +16,8 @@ TagManager:
   - Environment
   - Player
   - EditorOnly
-  - EnemiesAndItems
-  - 
+  - Items
+  - Enemies
   - 
   - 
   - 

@@ -1,21 +1,21 @@
-﻿using Prime31;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CharacterController2D))]
+[RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public abstract class MovementController : MonoBehaviour
 {
     public float walkSpeed = 6f;
-    public float groundDamping = 20f; // how fast do we change direction? higher means faster
-    public float inAirDamping = 5f;
-    protected Vector3 velocity;
     protected float normalizedHorizontalSpeed;
+    public LayerMask groundMask;
+    public LayerMask facingMask;
+    public float groundCheckOffset = 0.25f;
+    protected bool isGrounded;
+    protected bool isFacingWall;
 
-    protected CharacterController2D controller;
     protected SpriteRenderer render;
     protected Animator anim;
-    private Rigidbody2D rigid;
+    protected Rigidbody2D rigid;
 
     public float animSpeed = 0.2f;
     public bool frozenInAnimation { get; set; }
@@ -24,7 +24,6 @@ public abstract class MovementController : MonoBehaviour
     {
         render = transform.Find("Sprite").GetComponent<SpriteRenderer>();
         anim = render?.transform.GetComponent<Animator>();
-        controller = GetComponent<CharacterController2D>();
         rigid = GetComponent<Rigidbody2D>();
     }
 
@@ -34,16 +33,34 @@ public abstract class MovementController : MonoBehaviour
         {
             anim.SetFloat("animSpeed", animSpeed);
         }
-        controller.onControllerCollidedEvent += OnControllerCollision;
     }
 
-    protected virtual void OnDisable()
+    protected virtual void OnDrawGizmosSelected()
     {
-        controller.onControllerCollidedEvent -= OnControllerCollision;
+        Vector3 pos;
+        Gizmos.color = isGrounded ? Color.blue : Color.yellow;
+        pos = transform.position + Vector3.right * -groundCheckOffset + Vector3.up * 0.05f;
+        Gizmos.DrawRay(pos, Vector3.down * 0.1f);
+        pos = transform.position + Vector3.right * groundCheckOffset + Vector3.up * 0.05f;
+        Gizmos.DrawRay(pos, Vector3.down * 0.1f);
+
+        if (render != null)
+        {
+            render = GetComponentInChildren<SpriteRenderer>();
+        }
+        if (render != null)
+        {
+            Gizmos.color = isFacingWall ? Color.blue : Color.yellow;
+            pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * groundCheckOffset + Vector3.up * 0.5f;
+            Gizmos.DrawRay(pos, Vector2.right * -render.flipX.ToSignFloat() * 0.1f);
+        }
     }
 
     protected virtual void Update()
     {
+        CheckGrounded();
+        CheckFacingWall();
+
         if (!frozenInAnimation)
         {
             FlipCharacter();
@@ -53,20 +70,30 @@ public abstract class MovementController : MonoBehaviour
         Animate();
     }
 
+    protected void CheckGrounded()
+    {
+        Vector3 pos = transform.position + Vector3.right * -groundCheckOffset + Vector3.up * 0.05f;
+        isGrounded = Physics2D.Raycast(pos, Vector3.down, 0.1f, groundMask);//Physics2D.OverlapCircle(transform.position + Vector3.right * -groundCheckOffset, 0.1f, groundMask);
+        if (!isGrounded)
+        {
+            pos = transform.position + Vector3.right * groundCheckOffset + Vector3.up * 0.05f;
+            isGrounded = Physics2D.Raycast(pos, Vector3.down, 0.1f, groundMask);//Physics2D.OverlapCircle(transform.position + Vector3.right * groundCheckOffset, 0.1f, groundMask);
+        }
+    }
+
+    protected virtual void CheckFacingWall()
+    {
+        Vector3 pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * groundCheckOffset + Vector3.up * 0.5f;
+        isFacingWall = Physics2D.Raycast(pos, Vector2.right * -render.flipX.ToSignFloat(), 0.1f, facingMask);
+    }
+
     protected virtual void Movement(float speed)
     {
         speed = frozenInAnimation ? 0f : speed;
 
-        // apply horizontal speed smoothing it. dont really do this with Lerp. Use SmoothDamp or something that provides more control
-        float smoothedMovementFactor = controller.isGrounded ? groundDamping : inAirDamping; // how fast do we change direction?
-        velocity.x = Mathf.Lerp(velocity.x, normalizedHorizontalSpeed * speed, Time.deltaTime * smoothedMovementFactor);
+        rigid.velocity = rigid.velocity.ToWithX(normalizedHorizontalSpeed * speed * Time.deltaTime * 200f);
 
-        velocity.y += Physics2D.gravity.y * Time.deltaTime;
-        if (controller.enabled)
-        {
-            controller.move(velocity * Time.deltaTime);
-        }
-        velocity = controller.velocity;
+        rigid.velocity += Vector2.up * Physics2D.gravity.y * Time.deltaTime;
     }
 
     protected virtual void FlipCharacter()
@@ -91,17 +118,15 @@ public abstract class MovementController : MonoBehaviour
     {
         if (anim != null)
         {
-            anim.SetFloat("xSpeed", Mathf.Abs(controller.velocity.x));
-            anim.SetFloat("ySpeed", controller.velocity.y);
-            anim.SetBool("grounded", controller.isGrounded);
+            anim.SetFloat("xSpeed", Mathf.Abs(rigid.velocity.x));
+            anim.SetFloat("ySpeed", rigid.velocity.y);
+            anim.SetBool("grounded", isGrounded);
         }
     }
-
-    protected abstract void OnControllerCollision(RaycastHit2D hit);
 
     public void ToggleFreeze(bool toggle)
     {
         frozenInAnimation = toggle;
-        //rigid?.Freeze(toggle);
+        rigid?.Freeze(toggle);
     }
 }

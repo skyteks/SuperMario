@@ -31,9 +31,10 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  m_InstancedGameObject: {fileID: 0}
+  m_InstancedGameObject: {fileID: 1293851925476706707, guid: 7b46b1ea0b5eb3141b64a0dc6a466a63,
+    type: 3}
   m_Flags: 1
-  m_ColliderType: 2
+  m_ColliderType: 0
   changeToOnInteraction: {fileID: 11400000, guid: 4a6b31fd95a2a9d4b906e3ff2cdeaa70,
     type: 2}
   playerSprite: {fileID: 0}

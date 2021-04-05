@@ -21,6 +21,11 @@ public class GameManager : Singleton<GameManager>
 
     void Start()
     {
+        if (player == null)
+        {
+            player = FindObjectOfType<PlayerController>();
+        }
+
         audioPlayer = GetComponent<AudioPlayer>();
 
         StartCoroutine(CheckIfFallenToDeath());
@@ -72,11 +77,6 @@ public class GameManager : Singleton<GameManager>
     public void PlaySound(string soundCommand)
     {
         audioPlayer?.Play(soundCommand);
-    }
-
-    public void StopPlayerMovementY()
-    {
-        player.StopMovementY();
     }
 
     private IEnumerator CheckIfFallenToDeath()

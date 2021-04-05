@@ -16,28 +16,13 @@ public class PatrolController : MovementController
     {
         speed = frozenInAnimation || GameManager.Instance.freeze ? 0f : speed;
 
-        // apply horizontal speed smoothing it. dont really do this with Lerp. Use SmoothDamp or something that provides more control
-        float smoothedMovementFactor = controller.isGrounded ? groundDamping : inAirDamping; // how fast do we change direction?
-        velocity.x = Mathf.Lerp(velocity.x, normalizedHorizontalSpeed * speed, Time.deltaTime * smoothedMovementFactor);
-
-        velocity.y += Physics2D.gravity.y * Time.deltaTime;
-        if (controller.enabled)
-        {
-            controller.move(velocity * Time.deltaTime);
-        }
-        velocity = controller.velocity;
+        base.Movement(speed);
     }
 
-    protected override void OnControllerCollision(RaycastHit2D hit)
+    protected override void CheckFacingWall()
     {
-        // bail out on plain old ground hits cause they arent very interesting
-        if (hit.normal.y == 1f)
-        {
-            return;
-        }
-
-        //Debug.Log("flags: " + controller.collisionState + ", hit.normal: " + hit.normal);
-        if (!frozenInAnimation && hit.normal.y == 0f && (hit.normal.x < 0f || hit.normal.x > 0f))
+        base.CheckFacingWall();
+        if (isFacingWall && !frozenInAnimation)
         {
             normalizedHorizontalSpeed *= -1f;
         }

@@ -143,7 +143,6 @@ GameObject:
   - component: {fileID: 1795181679483724957}
   - component: {fileID: 1795181679483724956}
   - component: {fileID: 3918621228948507770}
-  - component: {fileID: 3939163571517775308}
   - component: {fileID: 1550745666}
   - component: {fileID: 1113215059}
   - component: {fileID: 8456761518681957440}
@@ -179,12 +178,12 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1795181679483724962}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0.2
+  m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
   m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
@@ -205,15 +204,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 6
-  groundDamping: 20
-  inAirDamping: 5
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 256
+  facingMask:
+    serializedVersion: 2
+    m_Bits: 256
+  groundCheckOffset: 0.35
   animSpeed: 0.15
   state: 0
   normalSize: {fileID: 1113215059}
   superSize: {fileID: 8456761518681957440}
   runSpeed: 10
   sprintSpeed: 14
-  jumpHeight: 4.1
+  jumpHeight: 4.2
   projectilePrefab: {fileID: 0}
   runToSprintTime: 1.2
   growTime: 1
@@ -224,66 +228,6 @@ MonoBehaviour:
   camAheadUpOffset: 0
   camAheadSpeed: 0
   coyoteTime: 0.1
---- !u!114 &3939163571517775308
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1795181679483724962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17f0f560212220f49946306c9ccbf4da, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ignoreOneWayPlatformsThisFrame: 0
-  _skinWidth: 0.02
-  platformMask:
-    serializedVersion: 2
-    m_Bits: 256
-  triggerMask:
-    serializedVersion: 2
-    m_Bits: 2048
-  oneWayPlatformMask:
-    serializedVersion: 2
-    m_Bits: 0
-  slopeLimit: 30
-  jumpingThreshold: 0.07
-  slopeSpeedMultiplier:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: -90
-      value: 1.5
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 90
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  totalHorizontalRays: 8
-  totalVerticalRays: 4
 --- !u!114 &1550745666
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -373,7 +317,7 @@ BoxCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0.475}
@@ -388,7 +332,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   serializedVersion: 2
   m_Size: {x: 0.7, y: 0.95}
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.001
 --- !u!61 &8456761518681957440
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -399,7 +343,7 @@ BoxCollider2D:
   m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 6200000, guid: ff32b43146b0c604ebc67aa1f2eb2723, type: 2}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0.8}
@@ -414,7 +358,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   serializedVersion: 2
   m_Size: {x: 0.7, y: 1.6}
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.001
 --- !u!1 &1795181679736030424
 GameObject:
   m_ObjectHideFlags: 0

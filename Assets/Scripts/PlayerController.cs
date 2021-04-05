@@ -1,5 +1,4 @@
-﻿using Prime31;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -53,6 +52,8 @@ public class PlayerController : MovementController
 
     private Coroutine animCoroutine = null;
 
+    private List<KeyValuePair<float, Vector3>> contactPoints = new List<KeyValuePair<float, Vector3>>();
+
     protected override void Awake()
     {
         base.Awake();
@@ -76,12 +77,14 @@ public class PlayerController : MovementController
 
     protected override void Update()
     {
+        CheckGrounded();
+
         if (!frozenInAnimation)
         {
             normalizedHorizontalSpeed = rawInputMovement.x;
 
             // manage coyote-time
-            coyoteCounter = controller.isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
+            coyoteCounter = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
 
             runningTimer = shouldRun && Math.Abs(normalizedHorizontalSpeed) > 0.1f ? Mathf.Max(0f, runningTimer - Time.deltaTime) : runToSprintTime;
 
@@ -96,24 +99,70 @@ public class PlayerController : MovementController
         MoveCamTarget();
     }
 
-    protected override void OnControllerCollision(RaycastHit2D hit)
+    protected override void OnDrawGizmosSelected()
     {
-        //Debug.Log("flags: " + controller.collisionState + ", hit.normal: " + hit.normal);
+        base.OnDrawGizmosSelected();
 
-        TilemapManager manager = hit.transform.GetComponent<TilemapManager>();
-        if (manager != null && hit.normal.y != 1f)
+        if (Application.isPlaying)
         {
-            Vector3 hitPosition = Vector3.zero;
-            hitPosition.x = hit.point.x - 0.01f * hit.normal.x;
-            hitPosition.y = hit.point.y - 0.01f * hit.normal.y;
-
-            Vector3Int cellPosition = manager.WorldToCell(hitPosition);
-            manager.HitTile(cellPosition, hit.normal);
+            Gizmos.color = Color.yellow;
+            for (int i = 0; i < contactPoints.Count; i++)
+            {
+                if (contactPoints[i].Key + 2f < Time.time)
+                {
+                    contactPoints.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    Gizmos.DrawWireSphere(contactPoints[i].Value, 0.1f);
+                }
+            }
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    protected void OnCollisionEnter2D(Collision2D collision)
     {
+        print("Collision with: " + collision.collider.gameObject);
+
+        PlatformEffector2D platformEffector = collision.gameObject.GetComponent<PlatformEffector2D>();
+        if (platformEffector != null && platformEffector.useOneWay)
+        {
+            float angle = Vector2.Angle(Vector2.up, collision.relativeVelocity);
+            if (angle < (platformEffector.rotationalOffset - platformEffector.surfaceArc * 0.5f))
+            {
+                print("return");
+                return;
+            }
+        }
+
+        TilemapManager manager = collision.transform.GetComponent<TilemapManager>();
+        if (manager == null)
+        {
+            manager = collision.transform.GetComponentInParent<TilemapManager>();
+        }
+        if (manager != null)
+        {
+            for (int i = 0; i < collision.contactCount; i++)
+            {
+                if (collision.contacts[i].normal.y != 1f)
+                {
+                    float sign = -1f;
+                    do
+                    {
+                        sign *= -1f;
+                        Vector3 hitPosition = Vector3.zero;
+                        hitPosition.x = collision.contacts[i].point.x - 0.01f * collision.contacts[i].normal.x;
+                        hitPosition.y = collision.contacts[i].point.y - 0.01f * collision.contacts[i].normal.y;
+
+                        Vector3Int cellPosition = manager.WorldToCell(hitPosition + Vector3.right * sign * groundCheckOffset);
+                        manager.HitTile(cellPosition, collision.contacts[0].normal);
+                    } while (sign > 0f);
+                }
+                contactPoints.Add(new KeyValuePair<float, Vector3>(Time.time, collision.contacts[0].point));
+            }
+        }
+
         TriggerObject trigger = collision.transform.GetComponent<TriggerObject>();
         Vector2 normal = (collision.transform.position - transform.position).normalized;
         if (trigger != null)
@@ -129,7 +178,7 @@ public class PlayerController : MovementController
             normalizedHorizontalSpeed = 1f;
             if (render.flipX)
             {
-            runningTimer = runToSprintTime;
+                runningTimer = runToSprintTime;
             }
             render.flipX = false;
             firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x), firePoint.localPosition.y, firePoint.localPosition.z);
@@ -140,7 +189,7 @@ public class PlayerController : MovementController
             normalizedHorizontalSpeed = -1f;
             if (!render.flipX)
             {
-            runningTimer = runToSprintTime;
+                runningTimer = runToSprintTime;
             }
             render.flipX = true;
             firePoint.localPosition = new Vector3(Mathf.Abs(firePoint.localPosition.x) * -1f, firePoint.localPosition.y, firePoint.localPosition.z);
@@ -181,16 +230,16 @@ public class PlayerController : MovementController
             if (callbackContext.started)
             {
                 rawJumpPressed = true;
-                if (controller.isGrounded && coyoteCounter > 0f)
+                if (isGrounded && coyoteCounter > 0f)
                 {
                     Bounce();
                 }
             }
 
-            if (callbackContext.canceled && controller.velocity.y > 0f)
+            if (callbackContext.canceled && rigid.velocity.y > 0f)
             {
                 rawJumpPressed = false;
-                velocity = velocity.ToWithY(velocity.y * 0.5f);
+                rigid.velocity = rigid.velocity.ToWithY(rigid.velocity.y * 0.5f);
             }
         }
     }
@@ -245,7 +294,7 @@ public class PlayerController : MovementController
         //knockback
         ToggleFreeze(true);
         GameManager.Instance.freeze = true;
-        velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
+        rigid.velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
         yield return new WaitForSeconds(knockbackTime);
         GameManager.Instance.freeze = false;
         ToggleFreeze(false);
@@ -253,7 +302,7 @@ public class PlayerController : MovementController
 
     public void Bounce()
     {
-        velocity.y = Mathf.Sqrt((rawJumpPressed ? 2f : 1f) * jumpHeight * -Physics2D.gravity.y);
+        rigid.velocity = rigid.velocity.ToWithY(Mathf.Sqrt((rawJumpPressed ? 4f : 2f) * jumpHeight * -Physics2D.gravity.y));
 
         coyoteCounter = 0f;
 
@@ -346,19 +395,12 @@ public class PlayerController : MovementController
         ToggleFreeze(true);
         anim?.SetTrigger("die");
         GameManager.Instance.PlaySound("die");
-        controller.enabled = false;
 
         normalSize.enabled = false;
 
         enabled = false;
 
         GameManager.Instance.QuitSoon();
-    }
-
-    public void StopMovementY()
-    {
-        velocity.y = 0f;
-        controller.velocity.y = 0f;
     }
 
     private void SpawnProjectile()

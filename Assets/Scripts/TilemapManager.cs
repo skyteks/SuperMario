@@ -50,8 +50,7 @@ public class TilemapManager : MonoBehaviour
 
     public void ChangeToOtherTileNextFrame(Vector3Int cellPosition, TileBase tile)
     {
-        plattformTilemap.SetTile(cellPosition, tile);
-        //plattformTilemap.RefreshTile(cellPosition);
+        orders.Enqueue(new KeyValuePair<Vector3Int, TileBase>(cellPosition, tile));
 
         GameManager.Instance.PlaySound(tile == null ? "break block" : "bump block");
     }
@@ -91,5 +90,10 @@ public class TilemapManager : MonoBehaviour
         }
 
         return dropItem;
+    }
+
+    public Vector3 GetTileAnchorOffset()
+    {
+        return plattformTilemap.tileAnchor;
     }
 }

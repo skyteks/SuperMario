@@ -30,8 +30,6 @@ public class InteractableTile : Tile
 
     protected virtual void Interact(Vector3Int cellPos, Vector2 normal, TilemapManager manager)
     {
-        GameManager.Instance.StopPlayerMovementY();
-
         Vector3 outDir;
         if (normal.y > 0f)
         {
