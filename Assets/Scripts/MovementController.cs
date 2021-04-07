@@ -51,7 +51,7 @@ public abstract class MovementController : MonoBehaviour
         if (render != null)
         {
             Gizmos.color = isFacingWall ? Color.blue : Color.yellow;
-            pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * groundCheckOffset + Vector3.up * 0.5f;
+            pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * (groundCheckOffset + 0.1f) + Vector3.up * 0.5f;
             Gizmos.DrawRay(pos, Vector2.right * -render.flipX.ToSignFloat() * 0.1f);
         }
     }
@@ -83,7 +83,7 @@ public abstract class MovementController : MonoBehaviour
 
     protected virtual void CheckFacingWall()
     {
-        Vector3 pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * groundCheckOffset + Vector3.up * 0.5f;
+        Vector3 pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * (groundCheckOffset + 0.1f) + Vector3.up * 0.5f;
         isFacingWall = Physics2D.Raycast(pos, Vector2.right * -render.flipX.ToSignFloat(), 0.1f, facingMask);
     }
 

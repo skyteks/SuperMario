@@ -75,7 +75,7 @@ MonoBehaviour:
     m_Bits: 256
   facingMask:
     serializedVersion: 2
-    m_Bits: 4864
+    m_Bits: 4352
   groundCheckOffset: 0.5
   animSpeed: 0.15
   startDirectionX: -1
