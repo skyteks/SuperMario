@@ -123,7 +123,7 @@ public class PlayerController : MovementController
 
     protected void OnCollisionEnter2D(Collision2D collision)
     {
-        print("Collision with: " + collision.collider.gameObject);
+        //print("Collision with: " + collision.collider.gameObject);
 
         PlatformEffector2D platformEffector = collision.gameObject.GetComponent<PlatformEffector2D>();
         if (platformEffector != null && platformEffector.useOneWay)
@@ -147,27 +147,21 @@ public class PlayerController : MovementController
             {
                 if (collision.contacts[i].normal.y != 1f)
                 {
-                    float sign = -1f;
-                    do
-                    {
-                        sign *= -1f;
-                        Vector3 hitPosition = Vector3.zero;
-                        hitPosition.x = collision.contacts[i].point.x - 0.01f * collision.contacts[i].normal.x;
-                        hitPosition.y = collision.contacts[i].point.y - 0.01f * collision.contacts[i].normal.y;
+                    Vector3 hitPosition = Vector3.zero;
+                    hitPosition.x = collision.contacts[i].point.x - 0.01f * collision.contacts[i].normal.x;
+                    hitPosition.y = collision.contacts[i].point.y - 0.01f * collision.contacts[i].normal.y;
 
-                        Vector3Int cellPosition = manager.WorldToCell(hitPosition + Vector3.right * sign * groundCheckOffset);
-                        manager.HitTile(cellPosition, collision.contacts[0].normal);
-                    } while (sign > 0f);
+                    Vector3Int cellPosition = manager.WorldToCell(hitPosition.ToWithX(transform.position.x));
+                    manager.HitTile(cellPosition, collision.contacts[0].normal);
                 }
                 contactPoints.Add(new KeyValuePair<float, Vector3>(Time.time, collision.contacts[0].point));
             }
         }
 
         TriggerObject trigger = collision.transform.GetComponent<TriggerObject>();
-        Vector2 normal = (collision.transform.position - transform.position).normalized;
         if (trigger != null)
         {
-            trigger.Trigger(this, normal);
+            trigger.Trigger(this, -collision.relativeVelocity);
         }
     }
 
@@ -203,9 +197,16 @@ public class PlayerController : MovementController
 
     protected override void Animate()
     {
-        base.Animate();
         if (anim != null)
         {
+            int speedState = 0;
+            if (normalizedHorizontalSpeed != 0f)
+            {
+                speedState = shouldRun ? (runningTimer == 0f ? 3 : 2) : 1;
+            }
+            anim.SetFloat("xSpeed", speedState);
+            anim.SetFloat("ySpeed", rigid.velocity.y);
+            anim.SetBool("grounded", isGrounded);
             anim.SetBool("duck", rawInputMovement.y < -0.01f);
         }
     }

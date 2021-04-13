@@ -16,13 +16,7 @@ public class AnimatedInteractableTile : AnimatedTile
 
     public virtual void Hit(Vector3Int cellPos, Vector2 normal, TilemapManager manager)
     {
-        bool triggered = false;
-        if (normal.y < 0f)
-        {
-            triggered = true;
-        }
-
-        if (triggered)
+        if (Vector2.Angle(normal, Vector2.up) > 135f)
         {
             Interact(cellPos, normal, manager);
         }
@@ -56,7 +50,6 @@ public class AnimatedInteractableTile : AnimatedTile
         {
             GameObject dropInstance = Instantiate(dropItemPrefab, manager.CellToWorld(cellPos) + Vector3.down * 0.5f, Quaternion.identity);
             manager.StartCoroutine(MoveOneCellIntoDirection(dropInstance, outDirection));
-            //dropInstance.transform.Translate(Vector3.up);
         }
     }
 
@@ -69,6 +62,10 @@ public class AnimatedInteractableTile : AnimatedTile
         float indexer = 0.25f;
         while (indexer != 1f)
         {
+            if (instance == null)
+            {
+                yield break;
+            }
             instance.transform.position = Vector3.Lerp(startPos, endPos, indexer);
             yield return null;
             indexer = Mathf.Clamp01(indexer + Time.deltaTime);

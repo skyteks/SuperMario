@@ -73,17 +73,17 @@ public abstract class MovementController : MonoBehaviour
     protected void CheckGrounded()
     {
         Vector3 pos = transform.position + Vector3.right * -groundCheckOffset + Vector3.up * 0.05f;
-        isGrounded = Physics2D.Raycast(pos, Vector3.down, 0.1f, groundMask);//Physics2D.OverlapCircle(transform.position + Vector3.right * -groundCheckOffset, 0.1f, groundMask);
+        isGrounded = Physics2D.Raycast(pos, Vector3.down, 0.1f, groundMask);
         if (!isGrounded)
         {
             pos = transform.position + Vector3.right * groundCheckOffset + Vector3.up * 0.05f;
-            isGrounded = Physics2D.Raycast(pos, Vector3.down, 0.1f, groundMask);//Physics2D.OverlapCircle(transform.position + Vector3.right * groundCheckOffset, 0.1f, groundMask);
+            isGrounded = Physics2D.Raycast(pos, Vector3.down, 0.1f, groundMask);
         }
     }
 
     protected virtual void CheckFacingWall()
     {
-        Vector3 pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * (groundCheckOffset + 0.1f) + Vector3.up * 0.5f;
+        Vector3 pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * (groundCheckOffset + 0.001f) + Vector3.up * 0.5f;
         isFacingWall = Physics2D.Raycast(pos, Vector2.right * -render.flipX.ToSignFloat(), 0.1f, facingMask);
     }
 
@@ -92,6 +92,13 @@ public abstract class MovementController : MonoBehaviour
         speed = frozenInAnimation ? 0f : speed;
 
         rigid.velocity = rigid.velocity.ToWithX(normalizedHorizontalSpeed * speed * Time.deltaTime * 200f);
+
+        if (GetComponentInChildren<UnityEngine.UI.Text>() != null) GetComponentInChildren<UnityEngine.UI.Text>().text =
+                string.Concat("speed ", speed, "\n",
+                    "input ", normalizedHorizontalSpeed, "\n",
+                    "velocity ", Mathf.Abs(rigid.velocity.x), "\n",
+                "timescale ", Time.timeScale, "\n",
+                "delta ", Time.deltaTime, "\n");
 
         rigid.velocity += Vector2.up * Physics2D.gravity.y * Time.deltaTime;
     }
