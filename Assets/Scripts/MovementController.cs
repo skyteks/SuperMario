@@ -7,6 +7,7 @@ public abstract class MovementController : MonoBehaviour
 {
     public float walkSpeed = 6f;
     protected float normalizedHorizontalSpeed;
+    protected float movementSpeed;
     public LayerMask groundMask;
     public LayerMask facingMask;
     public float groundCheckOffset = 0.25f;
@@ -61,13 +62,19 @@ public abstract class MovementController : MonoBehaviour
         CheckGrounded();
         CheckFacingWall();
 
-        if (!frozenInAnimation)
-        {
-            FlipCharacter();
-        }
-        Movement(walkSpeed);
+        FlipCharacter();
+
+        movementSpeed = walkSpeed;
 
         Animate();
+    }
+
+    protected virtual void FixedUpdate()
+    {
+        if (!frozenInAnimation)
+        {
+            Movement();
+        }
     }
 
     protected void CheckGrounded()
@@ -87,20 +94,13 @@ public abstract class MovementController : MonoBehaviour
         isFacingWall = Physics2D.Raycast(pos, Vector2.right * -render.flipX.ToSignFloat(), 0.1f, facingMask);
     }
 
-    protected virtual void Movement(float speed)
+    protected virtual void Movement()
     {
-        speed = frozenInAnimation ? 0f : speed;
+        movementSpeed = frozenInAnimation ? 0f : movementSpeed;
 
-        rigid.velocity = rigid.velocity.ToWithX(normalizedHorizontalSpeed * speed * Time.deltaTime * 200f);
+        rigid.velocity = rigid.velocity.ToWithX(normalizedHorizontalSpeed * movementSpeed * 50f * Time.fixedDeltaTime);
 
-        if (GetComponentInChildren<UnityEngine.UI.Text>() != null) GetComponentInChildren<UnityEngine.UI.Text>().text =
-                string.Concat("speed ", speed, "\n",
-                    "input ", normalizedHorizontalSpeed, "\n",
-                    "velocity ", Mathf.Abs(rigid.velocity.x), "\n",
-                "timescale ", Time.timeScale, "\n",
-                "delta ", Time.deltaTime, "\n");
-
-        rigid.velocity += Vector2.up * Physics2D.gravity.y * Time.deltaTime;
+        rigid.velocity += Vector2.up * Physics2D.gravity.y * Time.fixedDeltaTime;
     }
 
     protected virtual void FlipCharacter()

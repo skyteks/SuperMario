@@ -12,11 +12,11 @@ public class PatrolController : MovementController
         normalizedHorizontalSpeed = startDirectionX;
     }
 
-    protected override void Movement(float speed)
+    protected override void Movement()
     {
-        speed = frozenInAnimation || GameManager.Instance.freeze ? 0f : speed;
+        movementSpeed = frozenInAnimation || GameManager.Instance.freeze ? 0f : movementSpeed;
 
-        base.Movement(speed);
+        base.Movement();
     }
 
     protected override void CheckFacingWall()

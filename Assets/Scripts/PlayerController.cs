@@ -79,21 +79,17 @@ public class PlayerController : MovementController
     {
         CheckGrounded();
 
-        if (!frozenInAnimation)
-        {
-            normalizedHorizontalSpeed = rawInputMovement.x;
+        normalizedHorizontalSpeed = rawInputMovement.x;
 
-            // manage coyote-time
-            coyoteCounter = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
+        // manage coyote-time
+        coyoteCounter = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteCounter - Time.deltaTime);
 
-            runningTimer = shouldRun && Math.Abs(normalizedHorizontalSpeed) > 0.1f ? Mathf.Max(0f, runningTimer - Time.deltaTime) : runToSprintTime;
+        runningTimer = shouldRun && Math.Abs(normalizedHorizontalSpeed) > 0.1f ? Mathf.Max(0f, runningTimer - Time.deltaTime) : runToSprintTime;
 
-            FlipCharacter();
+        FlipCharacter();
 
-            float speed = shouldRun ? (runningTimer == 0f ? sprintSpeed : runSpeed) : walkSpeed;
+        movementSpeed = shouldRun ? (runningTimer == 0f ? sprintSpeed : runSpeed) : walkSpeed;
 
-            Movement(speed);
-        }
         Animate();
 
         MoveCamTarget();
