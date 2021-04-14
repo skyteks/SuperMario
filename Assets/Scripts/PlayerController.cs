@@ -286,17 +286,6 @@ public class PlayerController : MovementController
         animCoroutine = null;
     }
 
-    public IEnumerator Knockback(Vector2 direction)
-    {
-        //knockback
-        ToggleFreeze(true);
-        GameManager.Instance.freeze = true;
-        rigid.velocity = new Vector2(Mathf.Sign(direction.x) * knockBackForce.x, knockBackForce.y);
-        yield return new WaitForSeconds(knockbackTime);
-        GameManager.Instance.freeze = false;
-        ToggleFreeze(false);
-    }
-
     public void Bounce()
     {
         rigid.velocity = rigid.velocity.ToWithY(Mathf.Sqrt((rawJumpPressed ? 4f : 2f) * jumpHeight * -Physics2D.gravity.y));
@@ -324,7 +313,7 @@ public class PlayerController : MovementController
         }
     }
 
-    public bool GetDamaged(Vector2 normal)
+    public override void GetDamaged()
     {
         if (!invulnerarble)
         {
@@ -333,7 +322,7 @@ public class PlayerController : MovementController
             {
                 case State.Normal:
                     Die();
-                    return true;
+                    return;
                 case State.Super:
                     newState = State.Normal;
                     break;
@@ -343,11 +332,8 @@ public class PlayerController : MovementController
             }
             SetSize(newState, false);
 
-            StartCoroutine(Knockback(normal));
             animCoroutine = StartCoroutine(Invulnerability());
-            return true;
         }
-        return false;
     }
 
     public void CollectPowerUp(State givenState)
@@ -387,7 +373,7 @@ public class PlayerController : MovementController
         state = newState;
     }
 
-    public void Die()
+    public override void Die()
     {
         ToggleFreeze(true);
         anim?.SetTrigger("die");

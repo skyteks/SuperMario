@@ -27,8 +27,6 @@ public class GameManager : Singleton<GameManager>
         }
 
         audioPlayer = GetComponent<AudioPlayer>();
-
-        StartCoroutine(CheckIfFallenToDeath());
     }
 
     void Update()
@@ -77,19 +75,6 @@ public class GameManager : Singleton<GameManager>
     public void PlaySound(string soundCommand)
     {
         audioPlayer?.Play(soundCommand);
-    }
-
-    private IEnumerator CheckIfFallenToDeath()
-    {
-        for (; ; )
-        {
-            if (player.transform.position.y < -2.5f)
-            {
-                player.Die();
-                yield break;
-            }
-            yield return null;
-        }
     }
 
     public void QuitSoon()

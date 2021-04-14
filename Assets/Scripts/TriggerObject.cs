@@ -18,6 +18,13 @@ public class TriggerObject : MonoBehaviour
 
     public readonly float minTriggerNormalY = -0.7f;
 
+    private MovementController controller;
+
+    private void Awake()
+    {
+        controller = GetComponent<MovementController>();
+    }
+
     void Start()
     {
         if (playPowerupSpawnSound)
@@ -46,11 +53,11 @@ public class TriggerObject : MonoBehaviour
                 if (normal.y < minTriggerNormalY)
                 {
                     player.Bounce();
-                    Destroy(gameObject);
+                    controller.GetDamaged();
                 }
                 else
                 {
-                    player.GetDamaged(normal);
+                    player.GetDamaged();
                 }
                 break;
         }

@@ -27,4 +27,19 @@ public class PatrolController : MovementController
             normalizedHorizontalSpeed *= -1f;
         }
     }
+
+    public override void GetDamaged()
+    {
+        Die();
+    }
+
+    public override void Die()
+    {
+        ToggleFreeze(true);
+        //anim?.SetTrigger("die");
+
+        enabled = false;
+
+        Destroy(gameObject);
+    }
 }

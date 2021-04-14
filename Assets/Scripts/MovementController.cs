@@ -91,7 +91,11 @@ public abstract class MovementController : MonoBehaviour
     protected virtual void CheckFacingWall()
     {
         Vector3 pos = transform.position + Vector3.right * -render.flipX.ToSignFloat() * (groundCheckOffset + 0.001f) + Vector3.up * 0.5f;
-        isFacingWall = Physics2D.Raycast(pos, Vector2.right * -render.flipX.ToSignFloat(), 0.1f, facingMask);
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(facingMask);
+        filter.useTriggers = false;
+        List<RaycastHit2D> hits = new List<RaycastHit2D>();
+        isFacingWall = Physics2D.Raycast(pos, Vector2.right * -render.flipX.ToSignFloat(), filter, hits, 0.1f) > 0;
     }
 
     protected virtual void Movement()
@@ -136,4 +140,7 @@ public abstract class MovementController : MonoBehaviour
         frozenInAnimation = toggle;
         rigid?.Freeze(toggle);
     }
+
+    public abstract void GetDamaged();
+    public abstract void Die();
 }
